@@ -27,16 +27,24 @@ export function CanvasUIOffscreenRenderer({
 
   // Create the OffscreenCanvas and RenderCanvas
   const setup = useMemo(() => {
+    console.log('Setting up OffscreenCanvas with Canvas UI:', { width, height, dpr })
+
     // Create OffscreenCanvas
     const offscreenCanvas = new OffscreenCanvas(width * dpr, height * dpr)
     offscreenCanvasRef.current = offscreenCanvas
+    console.log('Created OffscreenCanvas:', offscreenCanvas)
 
     // Create RenderCanvas (the root of Canvas UI's render tree)
     const renderCanvas = createElement('Canvas')
-    renderCanvas.el = offscreenCanvas as any // Canvas UI accepts OffscreenCanvas
+
+    // IMPORTANT: Do NOT set renderCanvas.el with OffscreenCanvas!
+    // This would trigger DOMEventBinding which expects HTMLElement
+    // Instead, we'll manually dispatch events later
+
     renderCanvas.dpr = dpr
     renderCanvas.size = { width, height }
     renderCanvas.prepareInitialFrame()
+    console.log('Created RenderCanvas (without el binding)')
 
     renderCanvasRef.current = renderCanvas
 
