@@ -72,6 +72,9 @@ importers:
       '@types/react-dom':
         specifier: ^19.2.0
         version: 19.2.0(@types/react@19.2.0)
+      '@vitejs/plugin-basic-ssl':
+        specifier: ^1.1.0
+        version: 1.2.0(vite@7.1.9(@types/node@24.6.2)(jiti@1.21.7)(terser@5.44.0)(yaml@2.8.1))
       '@vitejs/plugin-react':
         specifier: ^5.0.4
         version: 5.0.4(vite@7.1.9(@types/node@24.6.2)(jiti@1.21.7)(terser@5.44.0)(yaml@2.8.1))
@@ -2541,6 +2544,12 @@ packages:
     resolution: {integrity: sha512-Yy19y6O2GJq8f7CHf7L0nxL8bf4PZCPaVOCgJrusOeFHY1LvHgYXnmnXg6N5iwAnbgbZCDjo60SiM6IPJi9C5g==}
     peerDependencies:
       react: '>= 16.8.0'
+
+  '@vitejs/plugin-basic-ssl@1.2.0':
+    resolution: {integrity: sha512-mkQnxTkcldAzIsomk1UuLfAu9n+kpQ3JbHcpCp7d2Oo6ITtji8pHS3QToOWjhPFvNQSnhlkAjmGbhv2QvwO/7Q==}
+    engines: {node: '>=14.21.3'}
+    peerDependencies:
+      vite: ^3.0.0 || ^4.0.0 || ^5.0.0 || ^6.0.0
 
   '@vitejs/plugin-react@5.0.4':
     resolution: {integrity: sha512-La0KD0vGkVkSk6K+piWDKRUyg8Rl5iAIKRMH0vMJI0Eg47bq1eOxmoObAaQG37WMW9MSyk7Cs8EIWwJC1PtzKA==}
@@ -10401,6 +10410,10 @@ snapshots:
     dependencies:
       '@use-gesture/core': 10.3.1
       react: 19.2.0
+
+  '@vitejs/plugin-basic-ssl@1.2.0(vite@7.1.9(@types/node@24.6.2)(jiti@1.21.7)(terser@5.44.0)(yaml@2.8.1))':
+    dependencies:
+      vite: 7.1.9(@types/node@24.6.2)(jiti@1.21.7)(terser@5.44.0)(yaml@2.8.1)
 
   '@vitejs/plugin-react@5.0.4(vite@7.1.9(@types/node@24.6.2)(jiti@1.21.7)(terser@5.44.0)(yaml@2.8.1))':
     dependencies:

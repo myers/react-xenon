@@ -1,5 +1,6 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
+import basicSsl from '@vitejs/plugin-basic-ssl'
 import path from 'path'
 import { resolve } from 'path'
 
@@ -13,6 +14,7 @@ export default defineConfig({
         ],
       },
     }),
+    basicSsl(),
   ],
   resolve: {
     alias: {
@@ -29,6 +31,7 @@ export default defineConfig({
         'canvas-ui': resolve(__dirname, 'canvas-ui.html'),
         'webxr-demo': resolve(__dirname, 'webxr-demo.html'),
         'music-player': resolve(__dirname, 'music-player.html'),
+        'xr-canvas-ui-demo': resolve(__dirname, 'xr-canvas-ui-demo.html'),
       },
     },
   },

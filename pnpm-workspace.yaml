@@ -1,2 +1,7 @@
 packages:
   - 'v/canvas-ui/packages/*'
+  - 'v/xr/packages/react/xr'
+  - 'v/xr/packages/xr'
+  - 'v/xr/packages/pointer-events'
+  - 'v/xr/packages/handle'
+  - 'v/xr/packages/react/handle'

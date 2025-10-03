@@ -33,7 +33,7 @@ const store = createXRStore({ foveation: 0, emulate: { syntheticEnvironment: fal
 
 setPreferredColorScheme('dark')
 
-export function WebXRApp() {
+export function XRCanvasUIApp() {
   return (
     <>
       <div
@@ -90,7 +90,7 @@ export function WebXRApp() {
         <PointerEvents batchEvents={false} />
         <OrbitHandles />
         <XR store={store}>
-          {/* <NonAREnvironment /> */}
+          <NonAREnvironment />
           <XROrigin position-y={-1.5} position-z={0.5} />
           <MusicPlayer />
         </XR>
