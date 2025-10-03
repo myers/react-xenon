@@ -3,7 +3,7 @@
     "playwright": {
       "type": "stdio",
       "command": "npx",
-      "args": ["@playwright/mcp@latest", "--isolated"],
+      "args": ["@playwright/mcp@latest", "--isolated", "--ignore-https-errors"],
       "env": {}
     },
     "serena": {

@@ -28,6 +28,7 @@ import { createXRStore, noEvents, PointerEvents, useXR, XR, XROrigin } from '@re
 import { forwardRef, RefObject, useCallback, useMemo, useRef } from 'react'
 import { Euler, Group, MeshPhysicalMaterial, Object3D, Quaternion, Vector3 } from 'three'
 import { clamp, damp } from 'three/src/math/MathUtils.js'
+import { XRButtons } from './XRButtons'
 
 const store = createXRStore({ foveation: 0, emulate: { syntheticEnvironment: false } })
 
@@ -36,51 +37,7 @@ setPreferredColorScheme('dark')
 export function WebXRApp() {
   return (
     <>
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'row',
-          gap: '1rem',
-          position: 'absolute',
-          zIndex: 10000,
-          bottom: '1rem',
-          left: '50%',
-          transform: 'translate(-50%, 0)',
-        }}
-      >
-        <button
-          style={{
-            background: 'white',
-            borderRadius: '0.5rem',
-            border: 'none',
-            fontWeight: 'bold',
-            color: 'black',
-            padding: '1rem 2rem',
-            cursor: 'pointer',
-            fontSize: '1.5rem',
-            boxShadow: '0px 0px 20px rgba(0,0,0,1)',
-          }}
-          onClick={() => store.enterAR()}
-        >
-          Enter AR
-        </button>
-        <button
-          style={{
-            background: 'white',
-            borderRadius: '0.5rem',
-            border: 'none',
-            fontWeight: 'bold',
-            color: 'black',
-            padding: '1rem 2rem',
-            cursor: 'pointer',
-            fontSize: '1.5rem',
-            boxShadow: '0px 0px 20px rgba(0,0,0,1)',
-          }}
-          onClick={() => store.enterVR()}
-        >
-          Enter VR
-        </button>
-      </div>
+      <XRButtons store={store} position="bottom" />
       <Canvas
         events={noEvents}
         gl={{ localClippingEnabled: true }}

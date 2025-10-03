@@ -20,7 +20,8 @@
       "Bash(find:*)",
       "Bash(npm info:*)",
       "Bash(pnpm install:*)",
-      "Bash(pnpm why:*)"
+      "Bash(pnpm why:*)",
+      "mcp__serena__list_dir"
     ]
   },
   "enabledMcpjsonServers": [
