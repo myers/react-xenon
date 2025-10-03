@@ -5,3 +5,6 @@ packages:
   - 'v/xr/packages/pointer-events'
   - 'v/xr/packages/handle'
   - 'v/xr/packages/react/handle'
+  - 'v/immersive-web-emulation-runtime'
+  - 'v/immersive-web-emulation-runtime/devui'
+  - 'v/immersive-web-emulation-runtime/sem'

@@ -19,7 +19,8 @@
       "Bash(cat:*)",
       "Bash(find:*)",
       "Bash(npm info:*)",
-      "Bash(pnpm install:*)"
+      "Bash(pnpm install:*)",
+      "Bash(pnpm why:*)"
     ]
   },
   "enabledMcpjsonServers": [
