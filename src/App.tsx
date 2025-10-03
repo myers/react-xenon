@@ -25,35 +25,34 @@ function App() {
     return () => clearTimeout(timer)
   }, [clickCount]) // Re-render image when click count changes
 
+  // Simulate clicking the button once per second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (buttonRef.current) {
+        console.log('[Auto-Click] Simulating Canvas UI button click')
+        const event = {
+          bubbles: true,
+          cancelable: true,
+          clientX: 256,
+          clientY: 400,
+          button: 0,
+        }
+        buttonRef.current.onPointerUp?.(event as any)
+      }
+    }, 1000)
+    return () => clearInterval(interval)
+  }, [])
+
   return (
     <div className="app-container">
-      {/* Simple Canvas UI Test with Debug Logging */}
-      <div style={{ marginBottom: '20px' }}>
-        <h2 style={{ color: 'white', marginBottom: '10px' }}>Canvas UI Debug Test</h2>
-        <div style={{ width: '400px', height: '300px' }}>
+      {/* Regular Canvas Test */}
+      <div style={{ padding: '20px', backgroundColor: 'white', borderRadius: '10px', marginBottom: '20px' }}>
+        <h3>Regular Canvas (for comparison)</h3>
+        <div style={{ width: '400px', height: '200px' }}>
           <Canvas>
-            <Flex style={{
-              width: 400,
-              height: 300,
-              flexDirection: 'column',
-              justifyContent: 'center',
-              alignItems: 'center',
-              backgroundColor: '#f0f0f0',
-              borderRadius: 10,
-            }}>
-              <Text style={{
-                fontSize: 48,
-                fontWeight: 'bold',
-                color: '#333',
-                marginBottom: 20,
-              }}>
-                Hello World!
-              </Text>
-              <Text style={{
-                fontSize: 24,
-                color: '#666',
-              }}>
-                Check the console!
+            <Flex style={{ width: 400, height: 200, backgroundColor: '#3498db', justifyContent: 'center', alignItems: 'center' }}>
+              <Text style={{ fontSize: 32, fontWeight: 'bold', color: '#ffffff' }}>
+                {`Clicks: ${clickCount}`}
               </Text>
             </Flex>
           </Canvas>
@@ -112,16 +111,6 @@ function App() {
             >
               ✓ Clean Component
             </Text>
-            <Text
-              style={{
-                fontSize: 32,
-                fontWeight: 'bold',
-                color: '#ffffff',
-                marginTop: 30,
-              }}
-            >
-              Clicks: {clickCount}
-            </Text>
 
             {/* Button rendered in Canvas UI */}
             <Flex
@@ -131,8 +120,8 @@ function App() {
                 setClickCount(c => c + 1)
               }}
               style={{
-                width: 200,
-                height: 60,
+                width: 300,
+                height: 80,
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: '#e74c3c',
@@ -143,47 +132,16 @@ function App() {
             >
               <Text
                 style={{
-                  fontSize: 24,
+                  fontSize: 32,
                   fontWeight: 'bold',
                   color: '#ffffff',
                 }}
               >
-                Click Me!
+                {`Clicks: ${clickCount}`}
               </Text>
             </Flex>
           </Flex>
         </OffscreenCanvas>
-
-        <button
-          onClick={() => {
-            console.log('[DOM Button] Simulating Canvas UI button click')
-            // Simulate a click on the Canvas UI button
-            if (buttonRef.current) {
-              // Dispatch a synthetic pointer event
-              const event = {
-                bubbles: true,
-                cancelable: true,
-                clientX: 256, // Center of button
-                clientY: 400, // Approximate Y position
-                button: 0,
-              }
-              console.log('[DOM Button] Triggering onPointerUp on Canvas UI button')
-              buttonRef.current.onPointerUp?.(event as any)
-            }
-          }}
-          style={{
-            marginTop: '20px',
-            padding: '10px 20px',
-            fontSize: '18px',
-            cursor: 'pointer',
-            backgroundColor: '#3498db',
-            color: 'white',
-            border: 'none',
-            borderRadius: '5px',
-          }}
-        >
-          Simulate Canvas UI Click ({clickCount} clicks)
-        </button>
 
         {imageUrl ? (
           <>

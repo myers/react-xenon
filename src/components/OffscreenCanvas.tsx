@@ -62,21 +62,36 @@ export function OffscreenCanvas({
     children,
   })
 
-  // Manually trigger initial frame render to populate canvasRef
+  // Manually trigger rendering after each React update
   useLayoutEffect(() => {
-    // Need to wait for next frame after React reconciler runs
-    requestAnimationFrame(() => {
+    // Trigger render after React reconciler has updated the Canvas UI tree
+    const renderFrame = () => {
+      const pipeline = (binding as any).pipeline
       const layerTree = (binding as any)._layer
       const rasterizer = (binding as any)._rasterizer
-      if (layerTree && rasterizer) {
-        console.log('[OffscreenCanvas] Manually triggering initial frame')
-        const tree = new LayerTree({ rootLayer: layerTree })
-        const frameSize = Size.scale({ width, height }, dpr)
-        rasterizer.draw(tree, frameSize)
-        console.log('[OffscreenCanvas] Initial frame complete')
+
+      if (layerTree && rasterizer && pipeline) {
+        console.log('[OffscreenCanvas] Flushing pipeline and rendering frame', { clickCount: (binding as any)._layer })
+
+        // Flush the pipeline like drawFrame() does
+        pipeline.flushLayout()
+        pipeline.flushNeedsCompositing()
+        pipeline.flushPaint()
+
+        // Give a tiny delay for paint to complete
+        requestAnimationFrame(() => {
+          // Now draw to the OffscreenCanvas
+          const tree = new LayerTree({ rootLayer: layerTree })
+          const frameSize = Size.scale({ width, height }, dpr)
+          rasterizer.draw(tree, frameSize)
+          console.log('[OffscreenCanvas] Frame rendered')
+        })
       }
-    })
-  }, [binding, width, height, dpr])
+    }
+
+    // Delay to ensure React reconciler has finished
+    requestAnimationFrame(renderFrame)
+  }) // No dependencies - run after every render
 
   // Like <Canvas>'s Binding component - returns null (headless)
   return null
