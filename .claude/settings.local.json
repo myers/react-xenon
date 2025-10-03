@@ -10,7 +10,12 @@
       "Bash(npx tsc:*)",
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_navigate",
-      "mcp__playwright__browser_wait_for"
+      "mcp__playwright__browser_wait_for",
+      "mcp__serena__find_symbol",
+      "mcp__serena__write_memory",
+      "mcp__serena__activate_project",
+      "mcp__serena__read_memory",
+      "mcp__serena__find_file"
     ]
   },
   "enabledMcpjsonServers": [
