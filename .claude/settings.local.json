@@ -15,7 +15,11 @@
       "mcp__serena__write_memory",
       "mcp__serena__activate_project",
       "mcp__serena__read_memory",
-      "mcp__serena__find_file"
+      "mcp__serena__find_file",
+      "Bash(cat:*)",
+      "Bash(find:*)",
+      "Bash(npm info:*)",
+      "Bash(pnpm install:*)"
     ]
   },
   "enabledMcpjsonServers": [

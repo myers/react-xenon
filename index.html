@@ -3,11 +3,121 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Canvas UI Hello World</title>
+    <title>Canvas UI Experiments</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 2rem;
+      }
+
+      .container {
+        max-width: 800px;
+        width: 100%;
+      }
+
+      h1 {
+        color: white;
+        font-size: 3rem;
+        margin-bottom: 0.5rem;
+        text-align: center;
+      }
+
+      .subtitle {
+        color: rgba(255, 255, 255, 0.9);
+        text-align: center;
+        margin-bottom: 3rem;
+        font-size: 1.2rem;
+      }
+
+      .demos {
+        display: grid;
+        gap: 1.5rem;
+      }
+
+      .demo-card {
+        background: white;
+        border-radius: 1rem;
+        padding: 2rem;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.2s, box-shadow 0.2s;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      }
+
+      .demo-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
+      }
+
+      .demo-card h2 {
+        color: #667eea;
+        font-size: 1.8rem;
+        margin-bottom: 0.5rem;
+      }
+
+      .demo-card p {
+        color: #666;
+        line-height: 1.6;
+      }
+
+      .badge {
+        display: inline-block;
+        background: #667eea;
+        color: white;
+        padding: 0.25rem 0.75rem;
+        border-radius: 0.5rem;
+        font-size: 0.875rem;
+        margin-top: 0.75rem;
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
-    <script src="/src/webxr-layers-polyfill.js"></script>
-    <script type="module" src="/src/main.tsx"></script>
+    <div class="container">
+      <h1>Canvas UI Experiments</h1>
+      <p class="subtitle">Exploring OffscreenCanvas and WebXR with React</p>
+
+      <div class="demos">
+        <a href="/canvas-ui.html" class="demo-card">
+          <h2>Canvas UI + OffscreenCanvas</h2>
+          <p>
+            Side-by-side comparison of regular Canvas UI rendering and OffscreenCanvas rendering.
+            Features a scrollable list with buttons, demonstrating Canvas UI's React reconciler
+            with headless rendering to OffscreenCanvas at 60fps.
+          </p>
+          <span class="badge">Canvas UI • React • OffscreenCanvas</span>
+        </a>
+
+        <a href="/webxr-demo.html" class="demo-card">
+          <h2>UIKit Music Player Demo</h2>
+          <p>
+            Interactive 3D music player interface with glass morphism effects. Features
+            resizable panels, scrollable playlists, and dynamic UI that tracks the camera.
+            Demonstrates @react-three/uikit flexbox layout system in XR space.
+          </p>
+          <span class="badge">WebXR • @react-three/uikit • @preact/signals</span>
+        </a>
+
+        <a href="/music-player.html" class="demo-card">
+          <h2>Canvas UI Music Player</h2>
+          <p>
+            2D music player built with Canvas UI primitives. Features a two-column layout
+            with sidebar navigation and scrollable playlist. Demonstrates Canvas UI's flexbox
+            layout system with images, text, and scrolling content.
+          </p>
+          <span class="badge">Canvas UI • Flexbox Layout • 2D Canvas</span>
+        </a>
+      </div>
+    </div>
   </body>
 </html>

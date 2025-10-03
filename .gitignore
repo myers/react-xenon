@@ -27,6 +27,6 @@ dist-ssr
 *.sw?
 
 *storybook.log
-/v
 /.playwright-mcp
 /.serena/cache
+/v

@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import path from 'path'
+import { resolve } from 'path'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -19,6 +20,16 @@ export default defineConfig({
       '@canvas-ui/core': path.resolve(__dirname, './v/canvas-ui/packages/core/src'),
       '@canvas-ui/react': path.resolve(__dirname, './v/canvas-ui/packages/react/src'),
       '@canvas-ui/assert': path.resolve(__dirname, './v/canvas-ui/packages/assert/src'),
+    },
+  },
+  build: {
+    rollupOptions: {
+      input: {
+        main: resolve(__dirname, 'index.html'),
+        'canvas-ui': resolve(__dirname, 'canvas-ui.html'),
+        'webxr-demo': resolve(__dirname, 'webxr-demo.html'),
+        'music-player': resolve(__dirname, 'music-player.html'),
+      },
     },
   },
   server: {
