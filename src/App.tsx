@@ -82,9 +82,8 @@ function App() {
     }
   }, [])
 
-  // Playback recorded scroll events - DISABLED
+  // Playback recorded scroll events
   useEffect(() => {
-    return // DISABLED
     const recordedEvents = [
   {
     "timestamp": 497.69999998807907,
@@ -1722,9 +1721,10 @@ function App() {
       scheduleNext()
     }
 
-    // Start playback on OffscreenCanvas only after 1 second
+    // Start playback on both canvases after 1 second
     setTimeout(() => {
       playback(scrollViewRef.current)
+      playback(regularScrollViewRef.current)
     }, 1000)
   }, [])
 

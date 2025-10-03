@@ -76,55 +76,67 @@ export function OffscreenCanvas({
     children,
   })
 
-  // Manually trigger rendering after each React update
+  // Set up continuous render loop that checks frameDirty
   useLayoutEffect(() => {
-    // Trigger render after React reconciler has updated the Canvas UI tree
-    const renderFrame = () => {
-      const pipeline = (binding as any).pipeline
-      const layerTree = (binding as any)._layer
-      const rasterizer = (binding as any)._rasterizer
+    const pipeline = (binding as any).pipeline
+    const layerTree = (binding as any)._layer
+    const rasterizer = (binding as any)._rasterizer
 
-      if (layerTree && rasterizer && pipeline) {
+    if (!layerTree || !rasterizer || !pipeline) {
+      return
+    }
+
+    let rafId: number
+
+    const renderLoop = () => {
+      // Always flush enter frame (for animations like scrollbar fade)
+      pipeline.flushEnterFrame()
+
+      // Only render if frame is dirty
+      if (binding.frameDirty) {
         // Flush the pipeline like drawFrame() does
         pipeline.flushLayout()
         pipeline.flushNeedsCompositing()
         pipeline.flushPaint()
 
-        // Schedule drawing for next frame to ensure paint has completed
-        requestAnimationFrame(() => {
-          // Now draw to the OffscreenCanvas
-          const tree = new LayerTree({ rootLayer: layerTree })
-          const frameSize = Size.scale({ width, height }, dpr)
-          rasterizer.draw(tree, frameSize)
+        // Mark frame as clean before composing (matches RenderCanvas behavior)
+        binding.frameDirty = false
 
-          // Call onFrameRendered callback if provided
-          if (onFrameRendered) {
-            // Try to get canvas from ref first, then from surface
-            let canvas = canvasRef?.current
-            if (!canvas && surfaceRef.current) {
-              try {
-                canvas = surfaceRef.current.canvas
-              } catch (e) {
-                // Canvas not ready yet
-              }
-            }
+        // Picture recording is complete - immediately compose
+        const tree = new LayerTree({ rootLayer: layerTree })
+        const frameSize = Size.scale({ width, height }, dpr)
+        rasterizer.draw(tree, frameSize)
 
-            if (canvas) {
-              frameNumberRef.current += 1
-              onFrameRendered({
-                canvas,
-                frameNumber: frameNumberRef.current,
-                timestamp: performance.now()
-              })
+        // Call onFrameRendered callback if provided
+        if (onFrameRendered) {
+          // Try to get canvas from ref first, then from surface
+          let canvas = canvasRef?.current
+          if (!canvas && surfaceRef.current) {
+            try {
+              canvas = surfaceRef.current.canvas
+            } catch (e) {
+              // Canvas not ready yet
             }
           }
-        })
+
+          if (canvas) {
+            frameNumberRef.current += 1
+            onFrameRendered({
+              canvas,
+              frameNumber: frameNumberRef.current,
+              timestamp: performance.now()
+            })
+          }
+        }
       }
+
+      rafId = requestAnimationFrame(renderLoop)
     }
 
-    // Delay to ensure React reconciler has finished
-    requestAnimationFrame(renderFrame)
-  }) // No dependencies - run after every render
+    rafId = requestAnimationFrame(renderLoop)
+
+    return () => cancelAnimationFrame(rafId)
+  }, [binding, width, height, dpr, canvasRef, onFrameRendered])
 
   // Like <Canvas>'s Binding component - returns null (headless)
   return null
