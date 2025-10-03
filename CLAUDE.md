@@ -1,0 +1,2 @@
+- always use jpeg for playwright screen shots
+- #Always use jpeg to take a screenshot.  PNG files are often too big to use.

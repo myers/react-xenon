@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm create:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout 5 npm run dev)",
+      "mcp__serena__get_symbols_overview",
+      "mcp__serena__search_for_pattern",
+      "Bash(npx tsc:*)",
+      "mcp__playwright__browser_console_messages",
+      "mcp__playwright__browser_navigate",
+      "mcp__playwright__browser_wait_for"
+    ]
+  },
+  "enabledMcpjsonServers": [
+    "playwright",
+    "serena"
+  ]
+}
