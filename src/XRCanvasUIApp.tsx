@@ -1,9 +1,10 @@
 import { Environment } from '@react-three/drei'
 import { Canvas } from '@react-three/fiber'
 import { OrbitHandles } from '@react-three/handle'
-import { createXRStore, noEvents, PointerEvents, useXR, XR, XRLayer, XROrigin } from '@react-three/xr'
-import { useCallback, useMemo } from 'react'
+import { createXRStore, noEvents, PointerEvents, useXR, XR, XROrigin } from '@react-three/xr'
+import { useCallback } from 'react'
 import { XRButtons } from './XRButtons'
+import { MusicPlayerLayer } from './components/MusicPlayerLayer'
 
 const store = createXRStore({
   controller: {
@@ -13,7 +14,7 @@ const store = createXRStore({
     normal: noEvents,
   },
   emulate: {
-    headset: { position: [0, 1.6, 3] },
+    syntheticEnvironment: false,
   },
   frameRate: 120,
   frameBufferScaling: 1.5,
@@ -38,54 +39,10 @@ export function XRCanvasUIApp() {
         <XR store={store}>
           <NonAREnvironment />
           <XROrigin position-y={-1.5} position-z={0.5} />
-          <DynamicTextLayer />
+          <MusicPlayerLayer position={[0, 0.1, -0.6]} />
         </XR>
       </Canvas>
     </>
-  )
-}
-
-function DynamicTextLayer() {
-  const canvas = useMemo(() => {
-    // Try OffscreenCanvas first, fallback to regular canvas
-    const canvas = typeof OffscreenCanvas !== 'undefined'
-      ? new OffscreenCanvas(1024, 1024)
-      : (() => {
-          const el = document.createElement('canvas')
-          el.width = 1024
-          el.height = 1024
-          return el
-        })()
-
-    const ctx = canvas.getContext('2d')
-    if (ctx) {
-      // White background
-      ctx.fillStyle = 'white'
-      ctx.fillRect(0, 0, 1024, 1024)
-
-      // Black text
-      ctx.fillStyle = 'black'
-      ctx.font = 'bold 72px Arial'
-      ctx.textAlign = 'center'
-      ctx.textBaseline = 'middle'
-      ctx.fillText('Hello WebXR!', 512, 512)
-
-      // Border for visibility
-      ctx.strokeStyle = 'black'
-      ctx.lineWidth = 4
-      ctx.strokeRect(0, 0, 1024, 1024)
-    }
-
-    return canvas
-  }, [])
-
-  return (
-    <XRLayer
-      src={canvas}
-      shape="quad"
-      position={[0, 0, -2]}
-      scale={[2, 2, 1]}
-    />
   )
 }
 
