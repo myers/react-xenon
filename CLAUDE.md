@@ -1,3 +1,4 @@
 - always use jpeg for playwright screen shots
 - #Always use jpeg to take a screenshot.  PNG files are often too big to use.
 - when you think you are done with a web demo, see it yourself with playwright mcp
+- we use pnpm over npm
