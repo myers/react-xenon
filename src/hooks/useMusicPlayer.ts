@@ -51,7 +51,11 @@ export function useMusicPlayer(tracks: Track[]) {
   }, [])
 
   const togglePlayPause = useCallback(() => {
-    setIsPlaying((prev) => !prev)
+    console.log('[useMusicPlayer] togglePlayPause called')
+    setIsPlaying((prev) => {
+      console.log('[useMusicPlayer] isPlaying:', prev, '-> ', !prev)
+      return !prev
+    })
   }, [])
 
   const next = useCallback(() => {

@@ -10,6 +10,7 @@ interface MusicPlayerLayerProps {
 
 export function MusicPlayerLayer({ position = [0, 0, -2], dpr = 2 }: MusicPlayerLayerProps) {
   const canvasRef = useRef<OffscreenCanvas>()
+  const renderCanvasRef = useRef<any>()
   const layerRef = useRef<XRLayerWithRedrawHandle>(null)
   const [canvasReady, setCanvasReady] = useState(false)
 
@@ -32,6 +33,7 @@ export function MusicPlayerLayer({ position = [0, 0, -2], dpr = 2 }: MusicPlayer
         height={600}
         dpr={dpr}
         canvasRef={canvasRef}
+        renderCanvasRef={renderCanvasRef}
         onReady={handleReady}
         onFrameRendered={handleFrameRendered}
       >
@@ -46,8 +48,9 @@ export function MusicPlayerLayer({ position = [0, 0, -2], dpr = 2 }: MusicPlayer
           shape="quad"
           position={position}
           scale={[1.5, 1, 1]}
-          pixelWidth={900 * dpr}
-          pixelHeight={600 * dpr}
+          pixelWidth={900}
+          pixelHeight={600}
+          renderCanvasRef={renderCanvasRef}
         />
       )}
     </>

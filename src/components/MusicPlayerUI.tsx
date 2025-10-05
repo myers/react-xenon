@@ -10,6 +10,9 @@ export function MusicPlayerUI() {
   const player = useMusicPlayer(sampleTracks)
   return (
     <Flex
+      onPointerDown={(e) => {
+        console.log('[MusicPlayerUI] ROOT pointerdown event received!', e)
+      }}
       style={{
         width: 900,
         height: 600,

@@ -1,4 +1,11 @@
-# Canvas UI + WebXR Examples
+# react-xenon - React based WebXR UI Framework
+
+## TODO
+
+- rename this, figure out how to include our needed changes to the libraries we use
+- use the system keyboard to handle text input
+  - System Keyboard in WebXR | Meta Horizon OS Developers <https://developers.meta.com/horizon/documentation/web/webxr-keyboard/>
+- investigate <https://meta-quest.github.io/immersive-web-emulation-runtime/xplat.html>
 
 ## XRCanvasUIExample
 

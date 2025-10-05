@@ -21,11 +21,16 @@
       "Bash(npm info:*)",
       "Bash(pnpm install:*)",
       "Bash(pnpm why:*)",
-      "mcp__serena__list_dir"
+      "mcp__serena__list_dir",
+      "Bash(pnpm dev:*)",
+      "mcp__serena__replace_symbol_body",
+      "Bash(pnpm build:*)"
     ]
   },
+  "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "playwright",
-    "serena"
+    "serena",
+    "better-playwright"
   ]
 }
