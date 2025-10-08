@@ -4,187 +4,226 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-**react-xenon** - A WebXR UI library for building interactive user interfaces in virtual reality, specifically targeting Meta Quest devices.
+**react-xenon** - A pnpm monorepo for building WebXR user interfaces with Canvas UI and React Three Fiber.
 
-This project started as an experiment exploring Canvas UI and WebXR integration, and has evolved into a production-ready library. It bridges Canvas UI (a React reconciler that renders to canvas) with WebXR, enabling React-based UIs to run in VR headsets.
+This project provides `@react-xenon/core`, a package that bridges Canvas UI (a React reconciler rendering to canvas) with WebXR, enabling React-based UIs to run in VR headsets like Meta Quest.
 
-**Current Status:** Building a clean event bridge architecture that translates external input sources (DOM events, XR controllers) to Canvas UI's event system using the `BridgeEventBinding` pattern.
+**Status:** Production-ready monorepo structure with publishable package and working examples.
+
+## Monorepo Structure
+
+```
+react-xenon/
+├── packages/
+│   └── react-xenon/          # @react-xenon/core - Main publishable package
+│       ├── src/
+│       │   ├── index.ts      # Public API exports
+│       │   ├── Xenon.tsx     # WebXR component
+│       │   ├── XenonAsImg.tsx           # DOM/2D testing component
+│       │   ├── useCanvasUISetup.tsx     # Core setup hook
+│       │   └── BridgeEventBinding.ts    # Event bridge utility
+│       ├── package.json
+│       └── README.md
+│
+├── examples/
+│   ├── basic/               # Minimal hello world example
+│   ├── music-player/        # Full 2D music player (Canvas UI)
+│   └── xenon-demo/          # WebXR music player demo
+│
+├── v/                       # Vendored dependencies (not in workspace)
+│   ├── canvas-ui/          # Modified Canvas UI packages
+│   ├── xr/                 # Modified React Three XR
+│   ├── uikit/              # React Three UIKit
+│   └── motion/             # Motion library
+│
+├── archive/                 # Old code (pre-monorepo)
+├── pnpm-workspace.yaml      # Workspace configuration
+└── package.json             # Root workspace config
+```
 
 ## Development Commands
 
-**Package Manager**: Use `pnpm` (not npm)
+**Package Manager**: Use `pnpm` (required for monorepo)
 
-- **Development server**: `pnpm dev` (runs on HTTPS with basic SSL, accessible via `--host`)
-- **Build**: `pnpm build` (runs TypeScript compiler then Vite build)
-- **Preview**: `pnpm preview`
-- **Type checking**: `npx tsc` (note: uses project references via tsconfig.json)
+### Workspace Commands
 
-## Multi-Page Application
+```bash
+# Install all dependencies
+pnpm install
 
-The project uses Vite's multi-page setup with separate HTML entry points:
+# Run all examples in parallel
+pnpm dev
 
-- `index.html` - Landing page with links to all demos
-- `canvas-ui.html` - Canvas UI + OffscreenCanvas comparison demo
-- `webxr-demo.html` - UIKit music player in WebXR
-- `music-player.html` - Canvas UI music player (2D)
-- `xr-canvas-ui-demo.html` - XR Canvas UI music player demo
+# Build packages only (examples don't need builds)
+pnpm build
 
-Each HTML file loads a different entry point from `src/`. When adding new demos, update both the Vite config's `build.rollupOptions.input` and create the corresponding HTML file.
+# Build everything including vendored deps
+pnpm build:all
+```
 
-## Architecture
+### Example Commands
 
-### Vendored Dependencies
+```bash
+# Run a specific example
+cd examples/xenon-demo
+pnpm dev
 
-The project vendors modified versions of several libraries in the `v/` directory:
+# Or from root
+pnpm --filter xenon-demo-example dev
+```
 
-- `v/canvas-ui/` - Canvas UI library (@canvas-ui/core, @canvas-ui/react, @canvas-ui/assert)
-- `v/xr/` - React Three XR (@react-three/xr)
-- `v/uikit/` - React Three UIKit
-- `v/motion/` - Motion library
-- `v/immersive-web-emulation-runtime/` - WebXR emulation
+## Package: @react-xenon/core
 
-These are aliased in `vite.config.ts` via `resolve.alias` to point to source directories, allowing live editing of library code. When modifying core UI behavior, check these directories first.
+The main package exports:
 
-### Event Bridge Architecture
+- `<Xenon>` - WebXR component for VR/AR
+- `<XenonAsImg>` - DOM component for 2D testing
+- `useCanvasUISetup` - Core setup hook
+- `BridgeEventBinding` - Event bridge class
 
-**BridgeEventBinding** (`src/utils/BridgeEventBinding.ts`)
-- Implements `NativeEventBinding` interface from Canvas UI
-- Bridges external event sources to Canvas UI's event processing system
-- Buffers events in `NativePointerEvents` format (keyed by pointerId)
-- Methods: `injectPointerEvent()`, `injectWheelEvent()`, `flushPointerEvents()`, `flushWheelEvent()`
-- Automatically triggers frame scheduling via `onEvents()` callback
-- Used by both OffscreenCanvas (2D testing) and XRLayer (VR) components
+### Key Architecture
 
-**Key Insight:** Instead of manually creating synthetic events and dispatching them, we inject native-like events into a binding, and let Canvas UI's `SyntheticEventManager` handle all the complexity:
-- Hit testing via `hitTestFromRoot()`
-- Automatic generation of hover events (pointerenter/pointerleave) from pointermove
-- Event propagation through capture/target/bubble phases
-- Path calculation and event targeting
+**BridgeEventBinding Pattern:**
+- Translates external events (DOM, XR controllers) → Canvas UI event system
+- Handles hit testing, hover state, event propagation automatically
+- Clean API: `binding.injectPointerEvent()`, `binding.injectWheelEvent()`
 
 **Event Flow:**
 ```
 External Source (DOM/XR) → BridgeEventBinding.injectPointerEvent() →
-NativePointerEvents buffer → SyntheticEventManager.flushNativeEvents() →
-SyntheticEventManager.handlePointerEvents() → Auto-generates hover events →
-Synthetic events dispatched to React components
+Buffer → SyntheticEventManager → Auto-generate hover events →
+Dispatch to React components
 ```
 
-### Core XR Canvas UI System
+## Examples
 
-The `src/xr-canvas-ui/` directory contains the core integration layer:
+### basic/
+Minimal "Hello Xenon" example showing:
+- `<Xenon>` component in WebXR
+- Basic Canvas UI components (Flex, Text)
+- VR button to enter XR
 
-**OffscreenCanvas Component** (`src/components/OffscreenCanvas.tsx`)
-- Headless Canvas UI rendering to OffscreenCanvas without DOM mounting
-- Creates `RenderCanvas`, `Surface`, `Rasterizer` manually
-- Creates `BridgeEventBinding` and wires to `SyntheticEventManager`
-- Intentionally does NOT set `renderCanvas.el` to avoid DOM event bindings
-- Exposes binding via `bindingRef` prop for external event injection
-- Continuous render loop checks `frameDirty` flag for lazy updates
-- Returns `null` (doesn't render to DOM)
+**Run:** `pnpm --filter basic-example dev`
 
-**XRCanvasUILayer** (`XRCanvasUILayer.tsx`)
-- Component that creates an XRLayer displaying Canvas UI content
-- Converts XR pointer events (UV coordinates) to Canvas UI events (pixel coordinates)
-- Handles pointer interactions: down, up, move, over, leave
-- Supports XR controller joystick for scrolling (enableJoystickScroll, scrollSensitivity)
-- Uses hit testing via `renderCanvas.hitTestFromRoot()` for event targeting
+### music-player/
+Full-featured 2D music player using:
+- `<XenonAsImg>` for DOM rendering
+- Canvas UI components (Flex, Text, ScrollView)
+- Zustand for state management
+- Inter Variable font via @fontsource
 
-**Event Flow (XR)**:
+**Run:** `pnpm --filter music-player-example dev`
+
+### xenon-demo/
+Complete WebXR music player demo featuring:
+- `<Xenon>` component in VR
+- XR controller events
+- Joystick scrolling
+- Full music player UI in VR
+
+**Run:** `pnpm --filter xenon-demo-example dev` (requires HTTPS)
+
+## Vendored Dependencies
+
+The `v/` directory contains modified versions of:
+
+- **canvas-ui** - Canvas UI library with OffscreenCanvas support
+- **xr** - React Three XR with custom modifications
+- **uikit** - React Three UIKit (reference)
+- **motion** - Motion library (reference)
+
+These are **not in the pnpm workspace**. Examples access them via Vite path aliases:
+
+```typescript
+// In vite.config.ts
+resolve: {
+  alias: {
+    '@react-xenon/core': '../../packages/react-xenon/src',
+    '@canvas-ui/core': '../../v/canvas-ui/packages/core/src',
+    '@canvas-ui/react': '../../v/canvas-ui/packages/react/src',
+  }
+}
 ```
-XR Controller → XRLayer (UV coords) → XRCanvasUILayer (pixel coords) →
-BridgeEventBinding → SyntheticEventManager → React components
-```
-
-**Event Flow (2D Testing)**:
-```
-DOM Event → Image coordinates → Canvas coordinates →
-BridgeEventBinding → SyntheticEventManager → React components
-```
-
-### Canvas UI Integration
-
-Canvas UI is a React reconciler that renders to canvas instead of DOM:
-- Uses `@canvas-ui/core` for the render tree (`RenderCanvas`, `createElement`)
-- Uses `@canvas-ui/react` for React integration (`render()`, components like `<Flex>`, `<Text>`)
-- Components: `View`, `Canvas`, `Flex`, `Text`, `Image`, `ScrollView`
-- Manual event dispatch via `renderCanvas.dispatchEvent()` with synthetic events
-- Hit testing via `renderCanvas.hitTestFromRoot(Point)` returns path of targets
-
-### State Management
-
-- Music player uses Zustand store (`src/hooks/useMusicPlayer.ts`)
-- XR/3D demos may use `@preact/signals` for reactive state
-- Standard React hooks throughout
-
-## Key Patterns
-
-### Adding XR Canvas UI to a Scene
-
-```tsx
-import { XRCanvasUILayer } from './xr-canvas-ui'
-import { Text, Flex, ScrollView } from '@canvas-ui/react'
-
-<XRCanvasUILayer
-  position={[0, 0, -1]}
-  pixelWidth={1024}
-  pixelHeight={1024}
-  dpr={2}
->
-  <Flex style={{ padding: 20 }}>
-    <Text>Hello WebXR!</Text>
-  </Flex>
-</XRCanvasUILayer>
-```
-
-### Dispatching Events to Canvas UI
-
-**The Clean Way (using BridgeEventBinding):**
-```tsx
-const bindingRef = useRef<BridgeEventBinding>()
-
-// In component:
-<OffscreenCanvas bindingRef={bindingRef} ... />
-
-// To inject events:
-bindingRef.current?.injectPointerEvent('pointermove', x, y, button, pointerId)
-bindingRef.current?.injectWheelEvent(x, y, deltaX, deltaY)
-```
-
-Canvas UI's `SyntheticEventManager` automatically:
-- Performs hit testing to find targets under the pointer
-- Generates `pointerenter`/`pointerleave` events when hover state changes
-- Handles event propagation (capture → target → bubble)
-- Manages pointer state tracking
-
-**DO NOT** manually create synthetic events or call `dispatchEvent()` directly. Use `BridgeEventBinding` instead.
 
 ## TypeScript Configuration
 
-- Uses project references (tsconfig.json → tsconfig.app.json, tsconfig.node.json)
-- Strict mode enabled with `experimentalDecorators` for Babel decorator plugin
-- Module resolution: "bundler" mode
-- When type checking, run `npx tsc` (not `tsc -b` directly)
+- Root `tsconfig.json` - Base configuration for all packages
+- Examples extend root config
+- Package uses `tsconfig.build.json` for builds (currently has errors due to path aliases)
+
+**Note:** Package build currently fails due to @canvas-ui imports. This is OK for development since examples use source directly via path aliases. Building is only needed for npm publishing.
+
+## Git Workflow
+
+**Important:** When committing, exclude vendored dependencies from commits unless intentionally modifying them.
+
+```bash
+# Don't accidentally commit v/ changes
+git status
+git add packages/ examples/ *.md package.json
+git commit
+```
+
+## Adding New Examples
+
+1. Create directory in `examples/`
+2. Copy structure from `examples/basic/`
+3. Update `package.json` with unique name
+4. Create `vite.config.ts` with path aliases
+5. Add example-specific dependencies
+6. Run `pnpm install` at root
 
 ## Testing
 
-### Event Testing (2D)
-Run `event-test.html` to test the event bridge:
-- Interactive counter button with hover effects
-- Record mouse interactions and play them back
-- Load pre-recorded event sequences from JSON
-- Validates BridgeEventBinding integration
+### 2D Testing (No VR headset needed)
+Use `<XenonAsImg>` component - renders Canvas UI to `<img>` via blob URLs
 
-### WebXR Testing (VR)
-1. Build and serve over HTTPS (dev server uses `@vitejs/plugin-basic-ssl`)
-2. Access from Meta Quest browser or use WebXR emulation
-3. Test pointer events, scrolling, and interactions with controllers
-4. For performance: use `dpr: 2` for crisp text, keep dimensions power-of-2
+```bash
+cd examples/music-player
+pnpm dev
+```
 
-## Project Goals
+### WebXR Testing
+Requires HTTPS for WebXR API access:
 
-1. **Clean Architecture** - Use Canvas UI's built-in patterns (NativeEventBinding) rather than working around them
-2. **Reusability** - BridgeEventBinding works for both 2D testing and XR production use
-3. **Type Safety** - Leverage TypeScript and Canvas UI's interfaces
-4. **Performance** - Lazy rendering via `frameDirty`, efficient event processing
-5. **Developer Experience** - Simple API, clear patterns, good documentation
-- Test all changes using the chrome devtools mcp
+```bash
+cd examples/xenon-demo
+pnpm dev  # Uses @vitejs/plugin-basic-ssl
+```
+
+Access from:
+- Browser with WebXR emulator
+- Meta Quest browser (connect to local network)
+- WebXR Device Emulator extension
+
+## Common Issues
+
+### Build Errors
+**Package build fails with "Cannot find module @canvas-ui/core"**
+- This is expected - package uses path aliases not npm dependencies
+- Examples work fine via Vite's alias resolution
+- Only matters when publishing to npm (future work)
+
+### HMR Issues
+**Changes not reflecting after editing vendored code**
+- Clear Vite cache: `rm -rf node_modules/.vite`
+- Full page reload (not just HMR)
+
+### Workspace Errors
+**"Package not found in workspace"**
+- Check `pnpm-workspace.yaml` includes correct paths
+- Run `pnpm install` at root
+- Ensure package.json has correct workspace:* references
+
+## Publishing (Future)
+
+To publish `@react-xenon/core` to npm:
+
+1. Fix package imports to use actual npm packages instead of path aliases
+2. Build package: `cd packages/react-xenon && pnpm build`
+3. Test build output
+4. Publish: `npm publish`
+
+Currently blocked by vendored dependencies - need to either:
+- Publish modified canvas-ui to npm
+- Or bundle canvas-ui into the package

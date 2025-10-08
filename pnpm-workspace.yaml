@@ -1,10 +1,3 @@
 packages:
-  - 'v/canvas-ui/packages/*'
-  - 'v/xr/packages/react/xr'
-  - 'v/xr/packages/xr'
-  - 'v/xr/packages/pointer-events'
-  - 'v/xr/packages/handle'
-  - 'v/xr/packages/react/handle'
-  - 'v/immersive-web-emulation-runtime'
-  - 'v/immersive-web-emulation-runtime/devui'
-  - 'v/immersive-web-emulation-runtime/sem'
+  - './packages/*'
+  - './examples/*'

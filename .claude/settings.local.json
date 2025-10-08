@@ -26,13 +26,13 @@
       "mcp__serena__replace_symbol_body",
       "Bash(pnpm build:*)",
       "Bash(npm search:*)",
-      "Bash(pnpm add:*)"
+      "Bash(pnpm add:*)",
+      "Bash(mkdir:*)"
     ]
   },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
-    "playwright",
-    "serena",
-    "better-playwright"
+    "chrome-devtools",
+    "serena"
   ]
 }

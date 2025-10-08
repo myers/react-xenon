@@ -1,0 +1,37 @@
+{
+  "name": "@react-xenon/core",
+  "version": "0.1.0",
+  "description": "Canvas UI components for WebXR - render React UIs in virtual reality",
+  "type": "module",
+  "main": "src/index.ts",
+  "publishConfig": {
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts"
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsc -p ./tsconfig.build.json",
+    "dev": "tsc -p ./tsconfig.build.json --watch"
+  },
+  "keywords": [
+    "react",
+    "three.js",
+    "webxr",
+    "vr",
+    "canvas-ui",
+    "virtual-reality",
+    "ui"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "peerDependencies": {
+    "react": ">=18",
+    "three": ">=0.160",
+    "@react-three/fiber": ">=8",
+    "@react-three/xr": ">=6"
+  },
+  "dependencies": {}
+}

@@ -1,17 +1,21 @@
 {
-  "name": "react-xenon-workspace",
+  "name": "basic-example",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter='./examples/**' --parallel dev",
-    "build": "pnpm -r --filter='./packages/**' build",
-    "build:all": "pnpm -r build",
+    "dev": "vite --host",
+    "build": "vite build",
     "preview": "vite preview"
   },
-  "dependencies": {},
+  "dependencies": {
+    "@react-xenon/core": "workspace:*",
+    "@react-three/fiber": "^9.3.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "three": "0.165.0"
+  },
   "devDependencies": {
-    "@babel/plugin-proposal-decorators": "^7.28.0",
     "@types/react": "^19.0.8",
     "@types/react-dom": "^19.0.8",
     "@vitejs/plugin-basic-ssl": "^1.1.0",
