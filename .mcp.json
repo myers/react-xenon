@@ -3,7 +3,7 @@
     "chrome-devtools": {
       "type": "stdio",
       "command": "npx",
-      "args": ["chrome-devtools-mcp@0.6.0", "--acceptInsecureCerts"],
+      "args": ["chrome-devtools-mcp@0.6.0", "--acceptInsecureCerts", "--isolated"],
       "env": {}
     },
     "serena": {

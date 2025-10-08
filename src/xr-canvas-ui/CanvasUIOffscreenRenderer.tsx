@@ -1,6 +1,6 @@
 import { createElement, RenderCanvas, Point } from '@canvas-ui/core'
-import { useEffect, useLayoutEffect, useMemo, useRef, ReactNode } from 'react'
-import { render } from '@canvas-ui/react'
+import { useEffect, useLayoutEffect, useState, useRef, ReactNode } from 'react'
+import { useBinding } from '@canvas-ui/react'
 
 export interface CanvasUIOffscreenRendererProps {
   width: number
@@ -21,76 +21,61 @@ export function CanvasUIOffscreenRenderer({
   children,
   onReady,
 }: CanvasUIOffscreenRendererProps) {
-  const renderCanvasRef = useRef<RenderCanvas>()
-  const offscreenCanvasRef = useRef<OffscreenCanvas>()
-  const rootViewRef = useRef(createElement('View'))
+  const onReadyCalledRef = useRef(false)
 
-  // Create the OffscreenCanvas and RenderCanvas
-  const setup = useMemo(() => {
+  // Initialize OffscreenCanvas and RenderCanvas once using useState
+  const [instances] = useState(() => {
     console.log('Setting up OffscreenCanvas with Canvas UI:', { width, height, dpr })
 
     // Create OffscreenCanvas
     const offscreenCanvas = new OffscreenCanvas(width * dpr, height * dpr)
-    offscreenCanvasRef.current = offscreenCanvas
     console.log('Created OffscreenCanvas:', offscreenCanvas)
 
-    // Create RenderCanvas (the root of Canvas UI's render tree)
-    const renderCanvas = createElement('Canvas')
-
-    // IMPORTANT: Do NOT set renderCanvas.el with OffscreenCanvas!
-    // This would trigger DOMEventBinding which expects HTMLElement
-    // Instead, we'll manually dispatch events later
-
+    // Create RenderCanvas with the OffscreenCanvas (IMPORTANT: pass canvas as 2nd arg)
+    const renderCanvas = createElement('Canvas', offscreenCanvas)
+    renderCanvas.prepareInitialFrame()
     renderCanvas.dpr = dpr
     renderCanvas.size = { width, height }
-    renderCanvas.prepareInitialFrame()
+
     console.log('Created RenderCanvas (without el binding)')
 
-    renderCanvasRef.current = renderCanvas
-
     return { offscreenCanvas, renderCanvas }
-  }, []) // Only create once
+  })
+
+  const { offscreenCanvas, renderCanvas } = instances
 
   // Update size and dpr when props change
   useLayoutEffect(() => {
-    if (!renderCanvasRef.current || !offscreenCanvasRef.current) return
+    offscreenCanvas.width = width * dpr
+    offscreenCanvas.height = height * dpr
+    renderCanvas.size = { width, height }
+    renderCanvas.dpr = dpr
+  }, [renderCanvas, offscreenCanvas, width, height, dpr])
 
-    offscreenCanvasRef.current.width = width * dpr
-    offscreenCanvasRef.current.height = height * dpr
-    renderCanvasRef.current.size = { width, height }
-    renderCanvasRef.current.dpr = dpr
-  }, [width, height, dpr])
-
-  // Mount the root view to the render canvas
+  // Call onReady when ready
   useLayoutEffect(() => {
-    if (!renderCanvasRef.current) return
-
-    renderCanvasRef.current.child = rootViewRef.current
-    return () => {
-      if (renderCanvasRef.current) {
-        renderCanvasRef.current.child = undefined
-      }
+    if (onReady && !onReadyCalledRef.current) {
+      onReady(offscreenCanvas, renderCanvas)
+      onReadyCalledRef.current = true
     }
-  }, [])
+  }, [onReady, offscreenCanvas, renderCanvas])
 
-  // Render React children to the root view
-  useLayoutEffect(() => {
-    render(children, rootViewRef.current)
-  }, [children])
-
-  // Call onReady when setup is complete
-  useEffect(() => {
-    if (setup.offscreenCanvas && setup.renderCanvas) {
-      onReady?.(setup.offscreenCanvas, setup.renderCanvas)
-    }
-  }, [setup, onReady])
+  // Use Canvas UI's binding hook for React reconciliation
+  useBinding({
+    binding: renderCanvas,
+    left: 0,
+    top: 0,
+    width,
+    height,
+    children
+  })
 
   // Cleanup on unmount
   useEffect(() => {
     return () => {
-      renderCanvasRef.current?.dispose()
+      renderCanvas.dispose()
     }
-  }, [])
+  }, [renderCanvas])
 
   return null // This component doesn't render to DOM
 }

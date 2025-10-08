@@ -1,8 +1,8 @@
-import { ReactNode, useRef, useState, useEffect } from 'react'
+import { ReactNode, useRef, useState, useEffect, useMemo } from 'react'
 import { XRLayer, XRLayerProperties } from '@react-three/xr'
 import { RenderCanvas } from '@canvas-ui/core'
-import { Mesh, Vector2 } from 'three'
-import { ThreeEvent } from '@react-three/fiber'
+import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget } from 'three'
+import { ThreeEvent, RootState } from '@react-three/fiber'
 import { CanvasUIOffscreenRenderer, useCanvasUIOffscreen } from './CanvasUIOffscreenRenderer'
 
 export interface XRCanvasUILayerProps extends Omit<XRLayerProperties, 'src' | 'children'> {
@@ -42,7 +42,6 @@ export function XRCanvasUILayer({
   ...xrLayerProps
 }: XRCanvasUILayerProps) {
   const meshRef = useRef<Mesh>(null)
-  const [isReady, setIsReady] = useState(false)
 
   const {
     offscreenCanvas,
@@ -173,6 +172,49 @@ export function XRCanvasUILayer({
     }
   }, [enableJoystickScroll, renderCanvas, dispatchWheelEvent, scrollSensitivity])
 
+  // Custom render function to copy OffscreenCanvas to XRLayer render target
+  const customRender = useMemo(() => {
+    let canvasTexture: CanvasTexture | null = null
+    let needsInitialRender = true
+
+    return (renderTarget: WebGLRenderTarget, state: RootState) => {
+      if (!offscreenCanvas || !renderCanvas) return
+
+      // Check if Canvas UI needs rendering (before calling drawFrame which resets it)
+      const hadDirtyFrame = renderCanvas.frameDirty || needsInitialRender
+
+      // Render Canvas UI to OffscreenCanvas (will skip if frameDirty is false)
+      renderCanvas.drawFrame()
+
+      if (needsInitialRender) {
+        needsInitialRender = false
+      }
+
+      // Only update and copy texture if Canvas UI actually rendered something
+      if (!hadDirtyFrame) {
+        return
+      }
+
+      // Create CanvasTexture once and reuse it
+      if (!canvasTexture) {
+        canvasTexture = new CanvasTexture(offscreenCanvas)
+        canvasTexture.colorSpace = SRGBColorSpace
+      }
+
+      // Mark texture as needing update
+      canvasTexture.needsUpdate = true
+
+      // Copy canvas texture to XRLayer render target
+      state.gl.copyTextureToTexture(
+        canvasTexture,
+        renderTarget.texture,
+        null,
+        new Vector2(0, 0),
+        0
+      )
+    }
+  }, [offscreenCanvas, renderCanvas])
+
   return (
     <>
       {/* Render Canvas UI to OffscreenCanvas */}
@@ -180,19 +222,16 @@ export function XRCanvasUILayer({
         width={pixelWidth}
         height={pixelHeight}
         dpr={dpr}
-        onReady={(canvas, rc) => {
-          handleReady(canvas, rc)
-          setIsReady(true)
-        }}
+        onReady={handleReady}
       >
         {children}
       </CanvasUIOffscreenRenderer>
 
-      {/* Render XRLayer with the OffscreenCanvas */}
-      {isReady && offscreenCanvas && (
+      {/* Render XRLayer with customRender */}
+      {offscreenCanvas && (
         <XRLayer
           ref={meshRef}
-          src={offscreenCanvas}
+          customRender={customRender}
           pixelWidth={pixelWidth}
           pixelHeight={pixelHeight}
           dpr={dpr}
@@ -202,7 +241,10 @@ export function XRCanvasUILayer({
           onPointerMove={handlePointerMove}
           onPointerOver={handlePointerOver}
           onPointerLeave={handlePointerLeave}
-        />
+        >
+          {/* Empty fragment needed to trigger customRender path */}
+          <></>
+        </XRLayer>
       )}
     </>
   )

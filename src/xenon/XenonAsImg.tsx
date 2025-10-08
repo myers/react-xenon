@@ -40,20 +40,11 @@ export function XenonAsImg({
   useEffect(() => {
     if (!renderCanvas || !binding || !canvas) return
 
-    const updateImage = async () => {
+    // Convert canvas to image blob and update img src
+    const convertToImage = async () => {
       try {
-        console.log('[XenonAsImg] Rendering frame and updating image')
-        console.log('[XenonAsImg] Canvas dimensions:', canvas.width, 'x', canvas.height)
-        console.log('[XenonAsImg] RenderCanvas instance:', renderCanvas)
-        console.log('[XenonAsImg] Has _offscreenCanvas?', (renderCanvas as any)._offscreenCanvas)
-        renderCanvas.frameDirty = true
-        renderCanvas.drawFrame()
-
-        // Wait a frame for rendering to complete
-        await new Promise(resolve => requestAnimationFrame(resolve))
-
         console.log('[XenonAsImg] Converting canvas to blob...')
-        const blob = await canvas.convertToBlob({ type: 'image/jpeg', quality: 0.95 })
+        const blob = await canvas.convertToBlob({ type: 'image/png' })
         console.log('[XenonAsImg] Blob created:', blob.size, 'bytes')
         const url = URL.createObjectURL(blob)
         console.log('[XenonAsImg] URL created:', url)
@@ -68,19 +59,23 @@ export function XenonAsImg({
       }
     }
 
-    // Override onEvents to trigger render + image update
-    binding.onEvents = () => {
-      renderCanvas.frameDirty = true
-      updateImage()
+    // Listen for frameEnd to update display after Canvas UI renders
+    const handleFrameEnd = () => {
+      console.log('[XenonAsImg] frameEnd event - updating display')
+      convertToImage()
     }
+    renderCanvas.addEventListener('frameEnd', handleFrameEnd)
 
     // Initial render - wait for React reconciliation to complete
     // Need to wait longer than one frame for children to be reconciled
     setTimeout(() => {
-      updateImage()
+      console.log('[XenonAsImg] Initial render - triggering drawFrame')
+      renderCanvas.frameDirty = true
+      renderCanvas.drawFrame()
     }, 100)
 
     return () => {
+      renderCanvas.removeEventListener('frameEnd', handleFrameEnd)
       if (imageUrl) URL.revokeObjectURL(imageUrl)
     }
   }, [renderCanvas, binding, canvas])
