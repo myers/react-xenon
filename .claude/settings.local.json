@@ -24,7 +24,9 @@
       "mcp__serena__list_dir",
       "Bash(pnpm dev:*)",
       "mcp__serena__replace_symbol_body",
-      "Bash(pnpm build:*)"
+      "Bash(pnpm build:*)",
+      "Bash(npm search:*)",
+      "Bash(pnpm add:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

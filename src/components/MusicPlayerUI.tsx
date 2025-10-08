@@ -1,4 +1,5 @@
-import { Flex, Text, ScrollView } from '@canvas-ui/react'
+import { Flex, ScrollView } from '@canvas-ui/react'
+import { Text } from './StyledText'
 import List from 'lucide/dist/esm/icons/list.js'
 import Heart from 'lucide/dist/esm/icons/heart.js'
 import Backpack from 'lucide/dist/esm/icons/backpack.js'

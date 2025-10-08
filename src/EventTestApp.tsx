@@ -1,56 +1,106 @@
 import { Canvas, Flex, Text } from '@canvas-ui/react'
 import { XenonAsImg } from './xenon'
-import { useRef, useState } from 'react'
+import { useRef, useState, useEffect } from 'react'
 import { BridgeEventBinding } from './utils/BridgeEventBinding'
 
 function CounterButton() {
   const [count, setCount] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
+  const [time, setTime] = useState(new Date())
+
+  // Update time every second
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setTime(new Date())
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  // Format time with AM/PM and seconds
+  const formatTime = (date: Date) => {
+    let hours = date.getHours()
+    const minutes = date.getMinutes()
+    const seconds = date.getSeconds()
+    const ampm = hours >= 12 ? 'PM' : 'AM'
+
+    hours = hours % 12
+    hours = hours ? hours : 12 // 0 should be 12
+
+    const mm = minutes < 10 ? '0' + minutes : minutes
+    const ss = seconds < 10 ? '0' + seconds : seconds
+
+    return `${hours}:${mm}:${ss} ${ampm}`
+  }
 
   return (
     <Flex
       style={{
         width: 400,
         height: 300,
-        flexDirection: 'column',
         backgroundColor: '#2c3e50',
-        justifyContent: 'center',
-        alignItems: 'center',
-        gap: 20,
+        flexDirection: 'column',
       }}
     >
       <Flex
-        onPointerDown={() => {
-          console.log('[CounterButton] Button clicked! Incrementing count from', count, 'to', count + 1)
-          setCount(c => c + 1)
-        }}
-        onPointerEnter={() => {
-          console.log('[CounterButton] Pointer entered!')
-          setIsHovered(true)
-        }}
-        onPointerLeave={() => {
-          console.log('[CounterButton] Pointer left!')
-          setIsHovered(false)
-        }}
         style={{
-          width: 200,
-          height: 80,
-          justifyContent: 'center',
+          width: 400,
+          height: 40,
+          justifyContent: 'flex-end',
           alignItems: 'center',
-          backgroundColor: isHovered ? '#5dade2' : '#3498db',
-          borderRadius: 10,
-          cursor: 'pointer',
+          paddingRight: 10,
         }}
       >
         <Text
           style={{
-            fontSize: 24,
-            fontWeight: 'bold',
-            color: '#ffffff',
+            fontSize: 18,
+            color: '#ecf0f1',
           }}
         >
-          {`Count: ${count}`}
+          {formatTime(time)}
         </Text>
+      </Flex>
+      <Flex
+        style={{
+          width: 400,
+          height: 260,
+          justifyContent: 'center',
+          alignItems: 'center',
+        }}
+      >
+        <Flex
+          onPointerDown={() => {
+            console.log('[CounterButton] Button clicked! Incrementing count from', count, 'to', count + 1)
+            setCount(c => c + 1)
+          }}
+          onPointerEnter={() => {
+            console.log('[CounterButton] Pointer entered!')
+            setIsHovered(true)
+          }}
+          onPointerLeave={() => {
+            console.log('[CounterButton] Pointer left!')
+            setIsHovered(false)
+          }}
+          style={{
+            width: 200,
+            height: 80,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: isHovered ? '#5dade2' : '#3498db',
+            borderRadius: 10,
+            cursor: 'pointer',
+          }}
+        >
+          <Text
+            style={{
+              fontSize: 24,
+              fontWeight: 'bold',
+              color: '#ffffff',
+            }}
+          >
+            {`Count: ${count}`}
+          </Text>
+        </Flex>
       </Flex>
     </Flex>
   )

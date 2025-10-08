@@ -31,7 +31,7 @@ export default defineConfig({
         'canvas-ui': resolve(__dirname, 'canvas-ui.html'),
         'webxr-demo': resolve(__dirname, 'webxr-demo.html'),
         'music-player': resolve(__dirname, 'music-player.html'),
-        'xr-canvas-ui-demo': resolve(__dirname, 'xr-canvas-ui-demo.html'),
+        'xenon-demo': resolve(__dirname, 'xenon-demo.html'),
       },
     },
   },

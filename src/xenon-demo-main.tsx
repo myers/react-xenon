@@ -1,9 +1,10 @@
+import '@fontsource-variable/inter'
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import { XRCanvasUIApp } from './XRCanvasUIApp'
+import { XenonDemoApp } from './XenonDemoApp'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <XRCanvasUIApp />
+    <XenonDemoApp />
   </StrictMode>,
 )

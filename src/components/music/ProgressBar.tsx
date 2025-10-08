@@ -1,4 +1,5 @@
-import { Flex, Text } from '@canvas-ui/react'
+import { Flex } from '@canvas-ui/react'
+import { Text } from '../StyledText'
 import { formatTime } from '../../utils/formatTime'
 
 interface ProgressBarProps {

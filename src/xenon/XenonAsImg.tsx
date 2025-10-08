@@ -56,12 +56,9 @@ export function XenonAsImg({
     }
     renderCanvas.addEventListener('frameEnd', handleFrameEnd)
 
-    // Initial render - wait for React reconciliation to complete
-    // Need to wait longer than one frame for children to be reconciled
-    setTimeout(() => {
-      renderCanvas.frameDirty = true
-      renderCanvas.drawFrame()
-    }, 100)
+    // Canvas UI automatically marks dirty and schedules frames when children are added
+    // via appendChild → adoptChild → markLayoutDirty → requestVisualUpdate
+    // So we just rely on the frameEnd event firing automatically
 
     return () => {
       renderCanvas.removeEventListener('frameEnd', handleFrameEnd)

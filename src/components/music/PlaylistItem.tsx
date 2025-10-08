@@ -1,4 +1,5 @@
-import { Flex, Text } from '@canvas-ui/react'
+import { Flex } from '@canvas-ui/react'
+import { Text } from '../StyledText'
 import { useState } from 'react'
 import Play from 'lucide/dist/esm/icons/play.js'
 import { Track } from '../../types/music'

@@ -49,7 +49,7 @@ function MusicPlayerLayers() {
   )
 }
 
-export function XRCanvasUIApp() {
+export function XenonDemoApp() {
   return (
     <>
       <XRButtons store={store} position="bottom" />

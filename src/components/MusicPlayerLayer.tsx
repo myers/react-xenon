@@ -1,4 +1,4 @@
-import { XRCanvasUILayer } from '../xr-canvas-ui'
+import { Xenon } from '../xenon'
 import { MusicPlayerUI } from './MusicPlayerUI'
 
 interface MusicPlayerLayerProps {
@@ -8,14 +8,14 @@ interface MusicPlayerLayerProps {
 
 export function MusicPlayerLayer({ position = [0, 0, -2], dpr = 2 }: MusicPlayerLayerProps) {
   return (
-    <XRCanvasUILayer
+    <Xenon
       position={position}
       pixelWidth={900}
       pixelHeight={600}
       dpr={dpr}
-      scale={[1.5, 1, 1]}
+      scale={[1.5, -1, 1]}
     >
       <MusicPlayerUI />
-    </XRCanvasUILayer>
+    </Xenon>
   )
 }
