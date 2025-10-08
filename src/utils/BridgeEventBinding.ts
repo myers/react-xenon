@@ -56,8 +56,6 @@ export class BridgeEventBinding implements NativeEventBinding {
     button: number = 0,
     pointerId: number = 0
   ) {
-    console.log('[BridgeEventBinding] 📥 Injecting event:', { type, x, y, button, pointerId })
-
     // Create a synthetic PointerEvent-like object
     const event = {
       type,
@@ -79,9 +77,6 @@ export class BridgeEventBinding implements NativeEventBinding {
       this.pointerEventsBuffer[pointerId] = {}
     }
     this.pointerEventsBuffer[pointerId][type] = event
-
-    console.log('[BridgeEventBinding] 📦 Buffer after injection:', this.pointerEventsBuffer)
-    console.log('[BridgeEventBinding] 🔔 Calling onEvents callback:', { hasCallback: !!this.onEvents })
 
     // Notify that events are available (triggers frame scheduling)
     this.onEvents?.()
@@ -127,10 +122,6 @@ export class BridgeEventBinding implements NativeEventBinding {
    */
   flushPointerEvents(): NativePointerEvents {
     const buffer = this.pointerEventsBuffer
-    const hasEvents = Object.keys(buffer).length > 0
-    if (hasEvents) {
-      console.log('[BridgeEventBinding] ✅ Flushing events:', buffer)
-    }
     this.pointerEventsBuffer = {}
     return buffer
   }

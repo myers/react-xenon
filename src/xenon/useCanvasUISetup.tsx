@@ -1,10 +1,7 @@
-import { RenderCanvas, SyntheticEventManager } from '@canvas-ui/core'
+import { RenderCanvas, SyntheticEventManager, PlatformAdapter } from '@canvas-ui/core'
 import { HeadlessCanvas } from '@canvas-ui/react'
 import { ReactNode, useRef, useState } from 'react'
 import { BridgeEventBinding } from '../utils/BridgeEventBinding'
-
-console.log('[useCanvasUISetup MODULE] File loaded!')
-console.log('[useCanvasUISetup MODULE] HeadlessCanvas:', HeadlessCanvas)
 
 /**
  * Hook that sets up headless Canvas UI rendering with event bridge
@@ -33,8 +30,6 @@ export function useCanvasUISetup({
   const [renderCanvas, setRenderCanvas] = useState<RenderCanvas>()
 
   const handleReady = (canvas: OffscreenCanvas, renderCanvas: RenderCanvas) => {
-    console.log('[useCanvasUISetup] HeadlessCanvas ready')
-
     // Update state to trigger re-render
     setCanvas(canvas)
     setRenderCanvas(renderCanvas)
@@ -47,11 +42,10 @@ export function useCanvasUISetup({
     const eventManager = SyntheticEventManager.findInstance(renderCanvas as any)
     if (eventManager) {
       eventManager.binding = bridgeBinding
-      console.log('[useCanvasUISetup] BridgeEventBinding wired to SyntheticEventManager')
 
-      // Set onEvents callback to mark frame dirty
+      // Set onEvents callback to schedule frame (same as DOMEventBinding)
       bridgeBinding.onEvents = () => {
-        renderCanvas.frameDirty = true
+        PlatformAdapter.scheduleFrame()
       }
     } else {
       console.error('[useCanvasUISetup] No SyntheticEventManager found!')

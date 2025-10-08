@@ -1,9 +1,6 @@
 import { ReactNode, useEffect, useState, useCallback, useRef } from 'react'
 import { useCanvasUISetup } from './useCanvasUISetup'
 
-console.log('[XenonAsImg MODULE] File loaded!')
-console.log('[XenonAsImg MODULE] useCanvasUISetup:', useCanvasUISetup)
-
 export interface XenonAsImgProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'width' | 'height'> {
   width: number
   height: number
@@ -24,14 +21,12 @@ export function XenonAsImg({
   children,
   ...imgProps
 }: XenonAsImgProps) {
-  console.log('[XenonAsImg] Component called!', { width, height, dpr })
   const { HeadlessCanvasElement, canvas, renderCanvas, binding } = useCanvasUISetup({
     width,
     height,
     dpr,
     children
   })
-  console.log('[XenonAsImg] useCanvasUISetup returned:', { canvas, renderCanvas, binding })
 
   const [imageUrl, setImageUrl] = useState<string>()
   const imgRef = useRef<HTMLImageElement>(null)
@@ -43,15 +38,11 @@ export function XenonAsImg({
     // Convert canvas to image blob and update img src
     const convertToImage = async () => {
       try {
-        console.log('[XenonAsImg] Converting canvas to blob...')
         const blob = await canvas.convertToBlob({ type: 'image/png' })
-        console.log('[XenonAsImg] Blob created:', blob.size, 'bytes')
         const url = URL.createObjectURL(blob)
-        console.log('[XenonAsImg] URL created:', url)
 
         setImageUrl(prev => {
           if (prev) URL.revokeObjectURL(prev)
-          console.log('[XenonAsImg] Image URL set')
           return url
         })
       } catch (error) {
@@ -61,7 +52,6 @@ export function XenonAsImg({
 
     // Listen for frameEnd to update display after Canvas UI renders
     const handleFrameEnd = () => {
-      console.log('[XenonAsImg] frameEnd event - updating display')
       convertToImage()
     }
     renderCanvas.addEventListener('frameEnd', handleFrameEnd)
@@ -69,7 +59,6 @@ export function XenonAsImg({
     // Initial render - wait for React reconciliation to complete
     // Need to wait longer than one frame for children to be reconciled
     setTimeout(() => {
-      console.log('[XenonAsImg] Initial render - triggering drawFrame')
       renderCanvas.frameDirty = true
       renderCanvas.drawFrame()
     }, 100)
@@ -85,17 +74,12 @@ export function XenonAsImg({
     type: 'pointerdown' | 'pointerup' | 'pointermove',
     e: React.PointerEvent<HTMLImageElement>
   ) => {
-    console.log(`[XenonAsImg] ${type} event received, binding:`, binding, 'imgRef:', imgRef.current)
-    if (!binding || !imgRef.current) {
-      console.log(`[XenonAsImg] ${type} - early return (binding: ${!!binding}, imgRef: ${!!imgRef.current})`)
-      return
-    }
+    if (!binding || !imgRef.current) return
 
     const rect = imgRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * width
     const y = ((e.clientY - rect.top) / rect.height) * height
 
-    console.log(`[XenonAsImg] ${type} at canvas coords:`, { x, y })
     binding.injectPointerEvent(type, x, y, e.button, e.pointerId)
   }, [binding, width, height])
 
