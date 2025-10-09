@@ -1,4 +1,4 @@
-import { Xenon } from '../xenon'
+import { Xenon } from '@react-xenon/core'
 import { MusicPlayerUI } from './MusicPlayerUI'
 
 interface MusicPlayerLayerProps {

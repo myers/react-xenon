@@ -2,7 +2,8 @@ import { ReactNode, useRef, useState, useEffect, useMemo, useCallback } from 're
 import { XRLayer, XRLayerProperties } from '@react-three/xr'
 import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget } from 'three'
 import { ThreeEvent, RootState } from '@react-three/fiber'
-import { useCanvasUISetup } from './useCanvasUISetup'
+import { HeadlessCanvas, InjectEventFn, InjectWheelEventFn } from '@canvas-ui/react'
+import { RenderCanvas } from '@canvas-ui/core'
 
 export interface XenonProps extends Omit<XRLayerProperties, 'src' | 'children'> {
   /** Width of the canvas in pixels */
@@ -46,17 +47,19 @@ export function Xenon({
   const meshRef = useRef<Mesh>(null)
   const lastPointerPosRef = useRef(new Vector2())
 
-  // Use the clean Canvas UI setup hook
-  const { HeadlessCanvasElement, canvas, renderCanvas, binding } = useCanvasUISetup({
-    width: pixelWidth,
-    height: pixelHeight,
-    dpr,
-    children
-  })
+  // Create OffscreenCanvas
+  const canvas = useMemo(
+    () => new OffscreenCanvas(pixelWidth * dpr, pixelHeight * dpr),
+    [pixelWidth, pixelHeight, dpr]
+  )
 
-  // Create CanvasTexture once when canvas is ready
+  // Store event injection functions and renderCanvas
+  const [injectEvent, setInjectEvent] = useState<InjectEventFn | null>(null)
+  const [injectWheelEvent, setInjectWheelEvent] = useState<InjectWheelEventFn | null>(null)
+  const [renderCanvas, setRenderCanvas] = useState<RenderCanvas | null>(null)
+
+  // Create CanvasTexture
   const canvasTexture = useMemo(() => {
-    if (!canvas) return null
     const texture = new CanvasTexture(canvas)
     texture.colorSpace = SRGBColorSpace
     // flipY defaults to true, which correctly flips canvas (top-left origin) to WebGL UV space (bottom-left origin)
@@ -82,7 +85,7 @@ export function Xenon({
 
   // Handle pointer events from XR - convert UV to pixel coords and inject
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!binding) return
+    if (!injectEvent) return
 
     const uv = e.uv
     if (!uv) return
@@ -93,11 +96,11 @@ export function Xenon({
 
     lastPointerPosRef.current.set(x, y)
 
-    binding.injectPointerEvent('pointerdown', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
-  }, [binding, pixelWidth, pixelHeight])
+    injectEvent('pointerdown', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
+  }, [injectEvent, pixelWidth, pixelHeight])
 
   const handlePointerUp = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!binding) return
+    if (!injectEvent) return
 
     const uv = e.uv
     if (!uv) return
@@ -105,11 +108,11 @@ export function Xenon({
     const x = uv.x * pixelWidth
     const y = (1 - uv.y) * pixelHeight
 
-    binding.injectPointerEvent('pointerup', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
-  }, [binding, pixelWidth, pixelHeight])
+    injectEvent('pointerup', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
+  }, [injectEvent, pixelWidth, pixelHeight])
 
   const handlePointerMove = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!binding) return
+    if (!injectEvent) return
 
     const uv = e.uv
     if (!uv) return
@@ -119,11 +122,11 @@ export function Xenon({
 
     lastPointerPosRef.current.set(x, y)
 
-    binding.injectPointerEvent('pointermove', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
-  }, [binding, pixelWidth, pixelHeight])
+    injectEvent('pointermove', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
+  }, [injectEvent, pixelWidth, pixelHeight])
 
   const handlePointerOver = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!binding) return
+    if (!injectEvent) return
 
     const uv = e.uv
     if (!uv) return
@@ -136,22 +139,22 @@ export function Xenon({
     // Note: We don't inject 'pointerover' - Canvas UI's SyntheticEventManager
     // automatically generates pointerenter/pointerleave from pointermove
     // But we do need to inject an initial move to establish hover state
-    binding.injectPointerEvent('pointermove', x, y, 0, e.nativeEvent.pointerId ?? 0)
-  }, [binding, pixelWidth, pixelHeight])
+    injectEvent('pointermove', x, y, 0, e.nativeEvent.pointerId ?? 0)
+  }, [injectEvent, pixelWidth, pixelHeight])
 
   const handlePointerLeave = useCallback((e: ThreeEvent<PointerEvent>) => {
-    if (!binding) return
+    if (!injectEvent) return
 
     const x = lastPointerPosRef.current.x
     const y = lastPointerPosRef.current.y
 
     // Inject pointerleave to clear hover state
-    binding.injectPointerEvent('pointerleave', x, y, 0, e.nativeEvent.pointerId ?? 0)
-  }, [binding])
+    injectEvent('pointerleave', x, y, 0, e.nativeEvent.pointerId ?? 0)
+  }, [injectEvent])
 
   // Handle XR controller joystick for scrolling
   useEffect(() => {
-    if (!enableJoystickScroll || !binding || !meshRef.current) return
+    if (!enableJoystickScroll || !injectWheelEvent || !meshRef.current) return
 
     let animationFrameId: number
 
@@ -172,7 +175,7 @@ export function Xenon({
               const y = lastPointerPosRef.current.y
 
               // Inject wheel event for scrolling
-              binding.injectWheelEvent(
+              injectWheelEvent(
                 x,
                 y,
                 deltaX * scrollSensitivity,
@@ -191,12 +194,10 @@ export function Xenon({
     return () => {
       cancelAnimationFrame(animationFrameId)
     }
-  }, [enableJoystickScroll, binding, scrollSensitivity])
+  }, [enableJoystickScroll, injectWheelEvent, scrollSensitivity])
 
   // Custom render function to copy OffscreenCanvas to XRLayer render target
   const customRender = useCallback((renderTarget: WebGLRenderTarget, state: RootState) => {
-    if (!canvasTexture) return
-
     // Copy canvas texture to XRLayer render target
     state.gl.copyTextureToTexture(
       canvasTexture,
@@ -209,25 +210,35 @@ export function Xenon({
 
   return (
     <>
-      {HeadlessCanvasElement}
-      {canvas && (
-        <XRLayer
-          ref={meshRef}
-          customRender={customRender}
-          pixelWidth={pixelWidth}
-          pixelHeight={pixelHeight}
-          dpr={dpr}
-          {...xrLayerProps}
-          onPointerDown={handlePointerDown}
-          onPointerUp={handlePointerUp}
-          onPointerMove={handlePointerMove}
-          onPointerOver={handlePointerOver}
-          onPointerLeave={handlePointerLeave}
-        >
-          {/* Empty fragment needed to trigger customRender path */}
-          <></>
-        </XRLayer>
-      )}
+      <HeadlessCanvas
+        canvas={canvas}
+        width={pixelWidth}
+        height={pixelHeight}
+        dpr={dpr}
+        onReady={({ injectEvent, injectWheelEvent, renderCanvas: rc }) => {
+          setInjectEvent(() => injectEvent)
+          setInjectWheelEvent(() => injectWheelEvent)
+          setRenderCanvas(rc)
+        }}
+      >
+        {children}
+      </HeadlessCanvas>
+      <XRLayer
+        ref={meshRef}
+        customRender={customRender}
+        pixelWidth={pixelWidth}
+        pixelHeight={pixelHeight}
+        dpr={dpr}
+        {...xrLayerProps}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerMove={handlePointerMove}
+        onPointerOver={handlePointerOver}
+        onPointerLeave={handlePointerLeave}
+      >
+        {/* Empty fragment needed to trigger customRender path */}
+        <></>
+      </XRLayer>
     </>
   )
 }

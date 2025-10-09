@@ -1,5 +1,6 @@
-import { ReactNode, useEffect, useState, useCallback, useRef } from 'react'
-import { useCanvasUISetup } from './useCanvasUISetup'
+import { ReactNode, useEffect, useState, useCallback, useRef, useMemo } from 'react'
+import { HeadlessCanvas, InjectEventFn } from '@canvas-ui/react'
+import { RenderCanvas } from '@canvas-ui/core'
 
 export interface XenonAsImgProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'width' | 'height'> {
   width: number
@@ -21,19 +22,22 @@ export function XenonAsImg({
   children,
   ...imgProps
 }: XenonAsImgProps) {
-  const { HeadlessCanvasElement, canvas, renderCanvas, binding } = useCanvasUISetup({
-    width,
-    height,
-    dpr,
-    children
-  })
-
-  const [imageUrl, setImageUrl] = useState<string>()
   const imgRef = useRef<HTMLImageElement>(null)
+
+  // Create OffscreenCanvas
+  const canvas = useMemo(
+    () => new OffscreenCanvas(width * dpr, height * dpr),
+    [width, height, dpr]
+  )
+
+  // Store event injection function and renderCanvas
+  const [injectEvent, setInjectEvent] = useState<InjectEventFn | null>(null)
+  const [renderCanvas, setRenderCanvas] = useState<RenderCanvas | null>(null)
+  const [imageUrl, setImageUrl] = useState<string>()
 
   // Event-driven rendering: render + update image when dirty
   useEffect(() => {
-    if (!renderCanvas || !binding || !canvas) return
+    if (!renderCanvas) return
 
     // Convert canvas to image blob and update img src
     const convertToImage = async () => {
@@ -62,27 +66,44 @@ export function XenonAsImg({
 
     return () => {
       renderCanvas.removeEventListener('frameEnd', handleFrameEnd)
+    }
+  }, [renderCanvas, canvas])
+
+  // Cleanup image URL on unmount
+  useEffect(() => {
+    return () => {
       if (imageUrl) URL.revokeObjectURL(imageUrl)
     }
-  }, [renderCanvas, binding, canvas])
+  }, [imageUrl])
 
   // Handle pointer events on image
   const handlePointerEvent = useCallback((
     type: 'pointerdown' | 'pointerup' | 'pointermove',
     e: React.PointerEvent<HTMLImageElement>
   ) => {
-    if (!binding || !imgRef.current) return
+    if (!injectEvent || !imgRef.current) return
 
     const rect = imgRef.current.getBoundingClientRect()
     const x = ((e.clientX - rect.left) / rect.width) * width
     const y = ((e.clientY - rect.top) / rect.height) * height
 
-    binding.injectPointerEvent(type, x, y, e.button, e.pointerId)
-  }, [binding, width, height])
+    injectEvent(type, x, y, e.button, e.pointerId)
+  }, [injectEvent, width, height])
 
   return (
     <>
-      {HeadlessCanvasElement}
+      <HeadlessCanvas
+        canvas={canvas}
+        width={width}
+        height={height}
+        dpr={dpr}
+        onReady={({ injectEvent, renderCanvas: rc }) => {
+          setInjectEvent(() => injectEvent)
+          setRenderCanvas(rc)
+        }}
+      >
+        {children}
+      </HeadlessCanvas>
       {imageUrl ? (
         <img
           ref={imgRef}
