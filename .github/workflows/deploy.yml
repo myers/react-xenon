@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install
 
+      - name: Install vendor/canvas-ui dependencies
+        run: cd vendor/canvas-ui && pnpm install
+
       - name: Build GitHub Pages
         run: pnpm pages:build
         env:
