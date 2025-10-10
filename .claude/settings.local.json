@@ -32,7 +32,9 @@
       "Bash(python3:*)",
       "Bash(pnpm pages:build:*)",
       "Bash(git -C v/canvas-ui status)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(gh run list:*)",
+      "Bash(tar:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

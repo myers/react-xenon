@@ -24,6 +24,13 @@ function vendorResolve(): Plugin {
         return null
       }
 
+      // IMPORTANT: Never resolve React or packages in dedupe list from vendor
+      // These MUST come from the example's node_modules to avoid duplicates
+      const dedupePackages = ['react', 'react-dom', 'react-reconciler', 'react-use-measure', 'three', '@react-three/fiber']
+      if (dedupePackages.some(pkg => source === pkg || source.startsWith(pkg + '/'))) {
+        return null
+      }
+
       // Check if this is being imported from a vendor file
       if (importer && importer.includes('/vendor/canvas-ui/')) {
         // Try to resolve from vendor/canvas-ui/node_modules
