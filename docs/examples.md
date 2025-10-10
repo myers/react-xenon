@@ -11,7 +11,7 @@ A full-featured music player with album art, playlists, and playback controls. T
 - Custom fonts and images
 - Multiple demo variants (XR, 2D img, Canvas UI)
 
-[View Music Player Example →](./examples/music-player/)
+<a href="./examples/music-player/" target="_blank">View Music Player Example →</a>
 
 **Features:**
 - Album art display
@@ -25,7 +25,7 @@ A full-featured music player with album art, playlists, and playback controls. T
 
 A simple getting started example showing the minimal setup needed for React Xenon.
 
-[View Basic Example →](./examples/basic/)
+<a href="./examples/basic/" target="_blank">View Basic Example →</a>
 
 **What you'll learn:**
 - Basic Xenon component usage
@@ -37,7 +37,7 @@ A simple getting started example showing the minimal setup needed for React Xeno
 
 Interactive demonstration of event handling in React Xenon.
 
-[View Event Test Example →](./examples/event-test/)
+<a href="./examples/event-test/" target="_blank">View Event Test Example →</a>
 
 **Features:**
 - Click event handling
