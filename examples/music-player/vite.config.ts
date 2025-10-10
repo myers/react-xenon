@@ -8,13 +8,22 @@ import fs from 'fs'
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
 // Plugin to resolve vendor dependencies from vendor/canvas-ui/node_modules
+// Only runs during builds, not dev server (dev server handles resolution naturally)
 function vendorResolve(): Plugin {
   const vendorNodeModules = path.resolve(__dirname, '../../vendor/canvas-ui/node_modules')
+  let isServing = false
 
   return {
     name: 'vendor-resolve',
     enforce: 'pre',
+    configResolved(config) {
+      isServing = config.command === 'serve'
+    },
     resolveId(source, importer) {
+      // Skip resolution in dev mode - let Vite handle it naturally
+      if (isServing) {
+        return null
+      }
       // Only try to resolve bare imports (not relative or absolute paths)
       // Skip our own aliases (@react-xenon, @canvas-ui)
       if (source.startsWith('.') || source.startsWith('/')) {

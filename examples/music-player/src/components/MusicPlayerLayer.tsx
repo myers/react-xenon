@@ -13,7 +13,7 @@ export function MusicPlayerLayer({ position = [0, 0, -2], dpr = 2 }: MusicPlayer
       pixelWidth={900}
       pixelHeight={600}
       dpr={dpr}
-      scale={[1.5, -1, 1]}
+      scale={[1.5, 1, 1]}
     >
       <MusicPlayerUI />
     </Xenon>

@@ -62,7 +62,8 @@ export function Xenon({
   const canvasTexture = useMemo(() => {
     const texture = new CanvasTexture(canvas)
     texture.colorSpace = SRGBColorSpace
-    // flipY defaults to true, which correctly flips canvas (top-left origin) to WebGL UV space (bottom-left origin)
+    // flipY has no effect when using copyTextureToTexture, so we handle orientation via mesh scale
+    texture.flipY = false
     return texture
   }, [canvas])
 
@@ -91,8 +92,9 @@ export function Xenon({
     if (!uv) return
 
     // Convert UV (0-1) to pixel coordinates
+    // Mesh has negative Y scale which flips UV, so map directly to canvas pixels
     const x = uv.x * pixelWidth
-    const y = (1 - uv.y) * pixelHeight // Flip Y because UV origin is bottom-left
+    const y = uv.y * pixelHeight
 
     lastPointerPosRef.current.set(x, y)
 
@@ -106,7 +108,7 @@ export function Xenon({
     if (!uv) return
 
     const x = uv.x * pixelWidth
-    const y = (1 - uv.y) * pixelHeight
+    const y = uv.y * pixelHeight
 
     injectEvent('pointerup', x, y, e.nativeEvent.button, e.nativeEvent.pointerId ?? 0)
   }, [injectEvent, pixelWidth, pixelHeight])
@@ -118,7 +120,7 @@ export function Xenon({
     if (!uv) return
 
     const x = uv.x * pixelWidth
-    const y = (1 - uv.y) * pixelHeight
+    const y = uv.y * pixelHeight
 
     lastPointerPosRef.current.set(x, y)
 
@@ -132,7 +134,7 @@ export function Xenon({
     if (!uv) return
 
     const x = uv.x * pixelWidth
-    const y = (1 - uv.y) * pixelHeight
+    const y = uv.y * pixelHeight
 
     lastPointerPosRef.current.set(x, y)
 
@@ -208,6 +210,20 @@ export function Xenon({
     )
   }, [canvasTexture])
 
+  // Apply Y-flip via mesh scale since copyTextureToTexture doesn't respect texture.flipY
+  const finalScale = useMemo(() => {
+    if (xrLayerProps.scale) {
+      // If user provided scale, apply Y-flip to it
+      if (Array.isArray(xrLayerProps.scale)) {
+        return [xrLayerProps.scale[0], -Math.abs(xrLayerProps.scale[1]), xrLayerProps.scale[2]]
+      }
+      // If scale is a number, apply to all axes but flip Y
+      return [xrLayerProps.scale, -xrLayerProps.scale, xrLayerProps.scale]
+    }
+    // Default: flip Y to correct canvas orientation
+    return [1, -1, 1]
+  }, [xrLayerProps.scale])
+
   return (
     <>
       <HeadlessCanvas
@@ -230,6 +246,7 @@ export function Xenon({
         pixelHeight={pixelHeight}
         dpr={dpr}
         {...xrLayerProps}
+        scale={finalScale}
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerMove={handlePointerMove}
