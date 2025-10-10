@@ -3,7 +3,7 @@ layout: home
 
 hero:
   name: React Xenon
-  text: WebXR UI for React
+  text: A UI library for react-xr
   tagline: Build interactive user interfaces in virtual reality using React and Canvas UI
   actions:
     - theme: brand
@@ -19,7 +19,7 @@ hero:
 features:
   - icon: 🥽
     title: WebXR Native
-    details: Built specifically for WebXR, targeting Meta Quest and other VR headsets with optimized rendering.
+    details: Built specifically for WebXR to use XRLayers, targeting Meta Quest with optimized rendering.
   - icon: ⚛️
     title: React-Powered
     details: Write your VR UIs using familiar React patterns and components with full Canvas UI integration.
@@ -30,6 +30,10 @@ features:
     title: High Performance
     details: Efficient rendering with OffscreenCanvas and lazy frame updates for smooth VR experiences.
 ---
+
+## CAUTION
+
+This is an early release, not quite ready for prime time.
 
 ## Quick Example
 
@@ -63,27 +67,19 @@ function MyVRUI() {
 
 ## Why React Xenon?
 
-React Xenon bridges Canvas UI (a React reconciler that renders to canvas) with WebXR, enabling React-based UIs to run in VR headsets. It provides:
+React Xenon bridges [Canvas UI](https://alibaba.github.io/canvas-ui/) with WebXR, enabling React-based UIs to run in VR headsets. It provides:
 
-- **Clean API**: Simple components that integrate naturally with React Three Fiber and @react-three/xr
-- **Modern Architecture**: Built on the latest Canvas UI patterns with HeadlessCanvas and BridgeEventBinding
+- **Clean API**: Simple components that integrate naturally with [React Three Fiber](https://r3f.docs.pmnd.rs) and [@react-three/xr](https://pmndrs.github.io/xr/docs/)
 - **Developer Experience**: Full TypeScript support with detailed type definitions
-- **Production Ready**: Used in real WebXR applications targeting Meta Quest devices
+- **XRLayer Support**: XRLayers allow for crisp text
 
 ## Examples
 
 Check out our live examples:
 
-- [Music Player](/examples/music-player/) - Full-featured music player with album art, playlists, and controls
 - [Basic Example](/examples/basic/) - Simple getting started example
-- [Event Test](/examples/event-test/) - Interactive event handling demonstration
+- [Music Player](/examples/music-player/) - Full-featured music player with album art, playlists, and controls
 
 ## Get Started
-
-Install React Xenon in your project:
-
-```bash
-pnpm add @react-xenon/core @canvas-ui/react @canvas-ui/core
-```
 
 Follow our [Getting Started guide](/guide/getting-started) to build your first WebXR UI.

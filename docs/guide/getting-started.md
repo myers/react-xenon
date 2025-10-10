@@ -2,6 +2,8 @@
 
 ## Installation
 
+**NOTE** this is not published on npmjs yet.  The directions below will not work (yet).
+
 Install React Xenon and its peer dependencies:
 
 ```bash
@@ -66,7 +68,7 @@ The `Xenon` component is the main entry point for rendering Canvas UI to WebXR:
 
 ### Canvas UI Components
 
-Inside `Xenon`, you can use any Canvas UI components:
+Inside `Xenon`, you can use any [Canvas UI](https://alibaba.github.io/canvas-ui/) components:
 
 - `<Flex>` - Flexbox layout container
 - `<Text>` - Rendered text

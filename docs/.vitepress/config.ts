@@ -43,7 +43,7 @@ export default defineConfig({
     },
 
     socialLinks: [
-      { icon: 'github', link: 'https://github.com/your-username/react-xenon' },
+      { icon: 'github', link: 'https://github.com/myers/react-xenon' },
     ],
 
     footer: {

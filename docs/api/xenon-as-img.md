@@ -1,6 +1,6 @@
 # XenonAsImg
 
-The `XenonAsImg` component renders Canvas UI content to an HTML `<img>` element for 2D testing without requiring VR.
+The `XenonAsImg` component renders Canvas UI content to an HTML `<img>` element for 2D testing without requiring VR.  Great for testing out the event handling.
 
 ## Import
 
@@ -11,6 +11,7 @@ import { XenonAsImg } from '@react-xenon/core'
 ## Use Case
 
 Use `XenonAsImg` when you want to:
+
 - Test your Canvas UI layouts without VR hardware
 - Create 2D previews of your VR UIs
 - Build hybrid apps with both 2D and VR modes
@@ -41,6 +42,7 @@ Device pixel ratio for rendering.
 ### Other Props
 
 Accepts all standard HTML `<img>` props:
+
 - `style`
 - `className`
 - `alt`
@@ -93,6 +95,7 @@ function App() {
 ## Event Handling
 
 `XenonAsImg` supports full event handling including:
+
 - Click events (`onClick`)
 - Hover events (`onPointerEnter`, `onPointerLeave`)
 - Move events (`onPointerMove`)
@@ -102,6 +105,7 @@ Events are automatically converted from mouse coordinates to canvas coordinates.
 ## Performance
 
 Note that `XenonAsImg` is less performant than `Xenon` in VR because:
+
 - Converts canvas to image blob on every frame
 - Runs in the main thread (not OffscreenCanvas worker)
 - Creates new object URLs

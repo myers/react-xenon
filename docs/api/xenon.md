@@ -68,6 +68,7 @@ Scroll speed when using joystick.
 ### Other Props
 
 Xenon accepts all props from `@react-three/xr`'s `XRLayer` component, including:
+
 - `rotation`
 - `quaternion`
 - `visible`

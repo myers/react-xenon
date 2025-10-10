@@ -2,9 +2,23 @@
 
 Explore our interactive examples to see React Xenon in action.
 
+## Basic Example
+
+A simple getting started example showing the minimal setup needed for React Xenon.
+
+<a href="./examples/basic/" target="_blank">View Basic Example →</a>
+
+**What you'll learn:**
+
+- Basic Xenon component usage
+- Simple Canvas UI layout
+- Text rendering
+- Entry to VR
+
 ## Music Player
 
 A full-featured music player with album art, playlists, and playback controls. This example demonstrates:
+
 - Complex layouts with Canvas UI components
 - Interactive buttons and controls
 - State management with Zustand
@@ -14,6 +28,7 @@ A full-featured music player with album art, playlists, and playback controls. T
 <a href="./examples/music-player/" target="_blank">View Music Player Example →</a>
 
 **Features:**
+
 - Album art display
 - Track list with selection
 - Play/pause, skip controls
@@ -21,36 +36,12 @@ A full-featured music player with album art, playlists, and playback controls. T
 - Volume control
 - Responsive layout
 
-## Basic Example
-
-A simple getting started example showing the minimal setup needed for React Xenon.
-
-<a href="./examples/basic/" target="_blank">View Basic Example →</a>
-
-**What you'll learn:**
-- Basic Xenon component usage
-- Simple Canvas UI layout
-- Text rendering
-- Entry to VR
-
-## Event Test
-
-Interactive demonstration of event handling in React Xenon.
-
-<a href="./examples/event-test/" target="_blank">View Event Test Example →</a>
-
-**Features:**
-- Click event handling
-- Hover effects
-- Event recording and playback
-- Visual feedback
-
 ## Running Examples Locally
 
 Clone the repository and run any example:
 
 ```bash
-git clone https://github.com/your-username/react-xenon.git
+git clone https://github.com/myers/react-xenon.git
 cd react-xenon
 pnpm install
 cd examples/music-player
@@ -74,6 +65,5 @@ To test in a Meta Quest:
 
 All examples are open source. Browse the code on GitHub to learn implementation details:
 
-- [Music Player Source](https://github.com/your-username/react-xenon/tree/main/examples/music-player)
-- [Basic Source](https://github.com/your-username/react-xenon/tree/main/examples/basic)
-- [Event Test Source](https://github.com/your-username/react-xenon/tree/main/examples/event-test)
+- [Basic Source](https://github.com/myers/react-xenon/tree/main/examples/basic)
+- [Music Player Source](https://github.com/myers/react-xenon/tree/main/examples/music-player)
