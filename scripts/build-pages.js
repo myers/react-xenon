@@ -15,18 +15,8 @@ console.log('🧹 Cleaning dist directory...')
 fs.removeSync(distDir)
 fs.ensureDirSync(distDir)
 
-// Build docs
-console.log('\n📚 Building documentation...')
-execSync('pnpm docs:build', { stdio: 'inherit', cwd: rootDir })
-
-// Copy docs to root of dist
-console.log('\n📦 Copying docs to dist...')
-fs.copySync(
-  path.join(rootDir, 'docs/.vitepress/dist'),
-  distDir
-)
-
-// Build and copy each example
+// Build and copy each example FIRST (before docs build)
+// This puts them in docs/public/ so VitePress includes them as static assets
 const examplesDir = path.join(rootDir, 'examples')
 const examples = fs.readdirSync(examplesDir).filter(file => {
   const examplePath = path.join(examplesDir, file)
@@ -36,6 +26,10 @@ const examples = fs.readdirSync(examplesDir).filter(file => {
 })
 
 console.log(`\n🎨 Building ${examples.length} examples...`)
+
+// Clean docs/public/examples before building
+const docsPublicExamplesDir = path.join(rootDir, 'docs/public/examples')
+fs.removeSync(docsPublicExamplesDir)
 
 for (const example of examples) {
   console.log(`\n  Building ${example}...`)
@@ -48,14 +42,15 @@ for (const example of examples) {
       env: { ...process.env, GITHUB_PAGES: 'true' }
     })
 
-    // Copy built example to dist/examples/<example-name>
+    // Copy built example to docs/public/examples/<example-name>
+    // VitePress will include these as static assets
     const exampleDistSrc = path.join(examplePath, 'dist')
-    const exampleDistDest = path.join(distDir, 'examples', example)
+    const exampleDistDest = path.join(docsPublicExamplesDir, example)
 
     if (fs.existsSync(exampleDistSrc)) {
       fs.ensureDirSync(path.dirname(exampleDistDest))
       fs.copySync(exampleDistSrc, exampleDistDest)
-      console.log(`  ✓ Copied ${example} to dist/examples/${example}`)
+      console.log(`  ✓ Copied ${example} to docs/public/examples/${example}`)
     } else {
       console.warn(`  ⚠️  No dist directory found for ${example}`)
     }
@@ -63,6 +58,17 @@ for (const example of examples) {
     console.error(`  ❌ Failed to build ${example}:`, error.message)
   }
 }
+
+// Build docs (which will include examples from public/ directory)
+console.log('\n📚 Building documentation...')
+execSync('pnpm docs:build', { stdio: 'inherit', cwd: rootDir })
+
+// Copy docs to root of dist
+console.log('\n📦 Copying docs to dist...')
+fs.copySync(
+  path.join(rootDir, 'docs/.vitepress/dist'),
+  distDir
+)
 
 // Create a .nojekyll file to prevent GitHub Pages from ignoring files starting with _
 fs.writeFileSync(path.join(distDir, '.nojekyll'), '')
