@@ -9,11 +9,12 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-xenon/core": "workspace:*",
-    "@react-three/fiber": "^9.3.0",
-    "@react-three/drei": "^10.7.6",
-    "@react-three/handle": "^6.6.26",
     "@fontsource-variable/inter": "^5.2.8",
+    "@react-three/drei": "^10.7.6",
+    "@react-three/fiber": "^9.3.0",
+    "@react-three/handle": "^6.6.26",
+    "@react-three/xr": "^6.6.27",
+    "@react-xenon/core": "workspace:*",
     "lucide": "^0.544.0",
     "react": "19.1.1",
     "react-dom": "19.1.1",

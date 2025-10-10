@@ -8,7 +8,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 This project provides `@react-xenon/core`, a package that bridges Canvas UI (a React reconciler rendering to canvas) with WebXR, enabling React-based UIs to run in VR headsets like Meta Quest.
 
-**Status:** Production-ready monorepo structure with publishable package and working examples.
+**Status:** Production-ready monorepo structure with publishable package, working examples, and comprehensive VitePress documentation.
 
 ## Monorepo Structure
 
@@ -19,16 +19,26 @@ react-xenon/
 │       ├── src/
 │       │   ├── index.ts      # Public API exports
 │       │   ├── Xenon.tsx     # WebXR component
-│       │   ├── XenonAsImg.tsx           # DOM/2D testing component
-│       │   ├── useCanvasUISetup.tsx     # Core setup hook
-│       │   └── BridgeEventBinding.ts    # Event bridge utility
+│       │   └── XenonAsImg.tsx           # DOM/2D testing component
 │       ├── package.json
 │       └── README.md
 │
 ├── examples/
-│   ├── basic/               # Minimal hello world example
-│   ├── music-player/        # Full 2D music player (Canvas UI)
-│   └── xenon-demo/          # WebXR music player demo
+│   ├── basic/               # Minimal WebXR hello world
+│   └── music-player/        # Full-featured music player (2D and WebXR)
+│
+├── docs/                    # VitePress documentation
+│   ├── .vitepress/         # VitePress config and theme
+│   ├── guide/              # Getting started, core concepts
+│   ├── api/                # API reference (Xenon, XenonAsImg)
+│   └── index.md            # Documentation homepage
+│
+├── .github/
+│   └── workflows/
+│       └── deploy.yml       # GitHub Pages deployment workflow
+│
+├── scripts/
+│   └── build-pages.js       # Build docs + examples for GitHub Pages
 │
 ├── v/                       # Vendored dependencies (not in workspace)
 │   ├── canvas-ui/          # Modified Canvas UI packages
@@ -54,74 +64,130 @@ pnpm install
 # Run all examples in parallel
 pnpm dev
 
-# Build packages only (examples don't need builds)
+# Build packages only
 pnpm build
 
 # Build everything including vendored deps
 pnpm build:all
+
+# Build all examples
+pnpm examples:build
+```
+
+### Documentation Commands
+
+```bash
+# Run documentation site locally (with hot reload)
+pnpm docs:dev
+
+# Build documentation for production
+pnpm docs:build
+
+# Preview built documentation
+pnpm docs:preview
+```
+
+### GitHub Pages Commands
+
+```bash
+# Build docs + all examples for GitHub Pages deployment
+pnpm pages:build
+
+# Preview the GitHub Pages build locally
+npx serve dist-pages
 ```
 
 ### Example Commands
 
 ```bash
 # Run a specific example
-cd examples/xenon-demo
+cd examples/basic
 pnpm dev
 
 # Or from root
-pnpm --filter xenon-demo-example dev
+pnpm --filter basic-example dev
+pnpm --filter music-player-example dev
 ```
 
 ## Package: @react-xenon/core
 
 The main package exports:
 
-- `<Xenon>` - WebXR component for VR/AR
-- `<XenonAsImg>` - DOM component for 2D testing
-- `useCanvasUISetup` - Core setup hook
-- `BridgeEventBinding` - Event bridge class
+- `<Xenon>` - WebXR component for VR/AR rendering
+- `XenonProps` - TypeScript props type for Xenon
+- `<XenonAsImg>` - DOM component for 2D testing/development
+- `XenonAsImgProps` - TypeScript props type for XenonAsImg
+
+Both components provide a clean, declarative API for rendering Canvas UI in different contexts (WebXR vs DOM).
 
 ### Key Architecture
 
-**BridgeEventBinding Pattern:**
-- Translates external events (DOM, XR controllers) → Canvas UI event system
-- Handles hit testing, hover state, event propagation automatically
-- Clean API: `binding.injectPointerEvent()`, `binding.injectWheelEvent()`
+**Component Pattern:**
+Both `Xenon` and `XenonAsImg` follow a unified architecture:
+- Use Canvas UI's HeadlessCanvas for rendering React components to canvas
+- Implement BridgeEventBinding internally for event translation
+- Handle pointer events (mouse, touch, XR controllers) seamlessly
+- Auto-generate hover/leave events via SyntheticEventManager
+- Support full Canvas UI component library (Flex, Text, ScrollView, etc.)
 
 **Event Flow:**
 ```
-External Source (DOM/XR) → BridgeEventBinding.injectPointerEvent() →
-Buffer → SyntheticEventManager → Auto-generate hover events →
-Dispatch to React components
+External Source (DOM/XR) → Component event handler →
+BridgeEventBinding.injectPointerEvent() → Buffer →
+SyntheticEventManager → Auto-generate hover events →
+Dispatch to React component handlers
 ```
+
+**Rendering:**
+- `XenonAsImg`: Canvas → Blob URL → `<img>` element (for 2D testing)
+- `Xenon`: OffscreenCanvas → Texture → XRLayer (for WebXR)
 
 ## Examples
 
 ### basic/
-Minimal "Hello Xenon" example showing:
-- `<Xenon>` component in WebXR
+Minimal "Hello Xenon" WebXR example showing:
+- `<Xenon>` component for WebXR rendering
 - Basic Canvas UI components (Flex, Text)
-- VR button to enter XR
+- VR button to enter XR mode
+- Simple pointer interaction
 
 **Run:** `pnpm --filter basic-example dev`
 
+**Technologies:** React, Canvas UI, React Three Fiber, @react-three/xr
+
 ### music-player/
-Full-featured 2D music player using:
-- `<XenonAsImg>` for DOM rendering
-- Canvas UI components (Flex, Text, ScrollView)
-- Zustand for state management
-- Inter Variable font via @fontsource
+Full-featured music player supporting both 2D and WebXR modes:
+- `<XenonAsImg>` for 2D DOM rendering (testing/development)
+- `<Xenon>` for WebXR VR rendering
+- Complex UI with Canvas UI components (Flex, Text, ScrollView, Image)
+- State management with Zustand
+- Album artwork and playlist support
+- Inter Variable font via @fontsource-variable
+- XR controller interaction and joystick scrolling (in VR mode)
 
 **Run:** `pnpm --filter music-player-example dev`
 
-### xenon-demo/
-Complete WebXR music player demo featuring:
-- `<Xenon>` component in VR
-- XR controller events
-- Joystick scrolling
-- Full music player UI in VR
+**Technologies:** React, Canvas UI, React Three Fiber, @react-three/xr, @react-three/drei, Zustand, Lucide icons
 
-**Run:** `pnpm --filter xenon-demo-example dev` (requires HTTPS)
+## Documentation
+
+The project uses **VitePress** for documentation, located in the `docs/` directory.
+
+### Structure
+- `docs/guide/` - Getting started guides and core concepts
+- `docs/api/` - API reference for Xenon and XenonAsImg components
+- `docs/examples.md` - Live example showcase
+- `docs/.vitepress/config.ts` - VitePress configuration
+
+### Local Development
+```bash
+pnpm docs:dev  # http://localhost:5173
+```
+
+### Deployment
+Documentation is automatically deployed to GitHub Pages via `.github/workflows/deploy.yml` when pushing to `main`. The deployment includes:
+- Full VitePress documentation
+- Built examples (accessible via `/examples/basic/`, `/examples/music-player/`)
 
 ## Vendored Dependencies
 
@@ -155,13 +221,29 @@ resolve: {
 
 ## Git Workflow
 
-**Important:** When committing, exclude vendored dependencies from commits unless intentionally modifying them.
+**Important:** When committing, be selective about what to include.
+
+### Generally commit:
+- `packages/` - Source code changes
+- `examples/` - Example code changes
+- `docs/` - Documentation source changes
+- `.github/` - Workflow configurations
+- `scripts/` - Build scripts
+- `*.md` files - Documentation updates
+- `package.json`, `pnpm-lock.yaml` - Dependency updates
+
+### Generally exclude:
+- `v/` - Vendored dependencies (unless intentionally modifying)
+- `dist-pages/` - Built documentation (generated by CI)
+- `node_modules/` - Dependencies (gitignored)
+- `dist/` - Build outputs (gitignored)
+- `.vitepress/dist/` - Built docs (generated)
 
 ```bash
-# Don't accidentally commit v/ changes
+# Example commit workflow
 git status
-git add packages/ examples/ *.md package.json
-git commit
+git add packages/ examples/ docs/ CLAUDE.md
+git commit -m "Update documentation"
 ```
 
 ## Adding New Examples
@@ -181,20 +263,30 @@ Use `<XenonAsImg>` component - renders Canvas UI to `<img>` via blob URLs
 ```bash
 cd examples/music-player
 pnpm dev
+# Open http://localhost:5173 in browser
 ```
 
+The music-player example can toggle between 2D (`XenonAsImg`) and WebXR (`Xenon`) modes, making it easy to develop and test UI without a headset.
+
 ### WebXR Testing
-Requires HTTPS for WebXR API access:
+Both examples support WebXR. Requires HTTPS for WebXR API access:
 
 ```bash
-cd examples/xenon-demo
+# Basic example
+cd examples/basic
+pnpm dev  # Uses @vitejs/plugin-basic-ssl
+
+# Music player with full UI
+cd examples/music-player
 pnpm dev  # Uses @vitejs/plugin-basic-ssl
 ```
 
 Access from:
-- Browser with WebXR emulator
-- Meta Quest browser (connect to local network)
-- WebXR Device Emulator extension
+- **Desktop browser**: Use WebXR Device Emulator extension for testing
+- **Meta Quest**: Connect to your local network (https://YOUR_IP:5173)
+- **Other VR headsets**: Any WebXR-compatible browser
+
+**Note:** Accept the self-signed SSL certificate warning when accessing via HTTPS locally.
 
 ## Common Issues
 
@@ -214,6 +306,35 @@ Access from:
 - Check `pnpm-workspace.yaml` includes correct paths
 - Run `pnpm install` at root
 - Ensure package.json has correct workspace:* references
+
+## GitHub Pages Deployment
+
+The project automatically deploys documentation and examples to GitHub Pages on every push to `main`.
+
+### Deployment Workflow
+The `.github/workflows/deploy.yml` GitHub Action:
+1. Installs dependencies with pnpm
+2. Builds packages (`pnpm build`)
+3. Builds documentation and examples (`pnpm pages:build`)
+4. Deploys to GitHub Pages
+
+### Build Script
+The `scripts/build-pages.js` script:
+- Builds VitePress documentation
+- Builds all examples with production settings
+- Combines everything into `dist-pages/` directory
+- Documentation at root, examples at `/examples/{example-name}/`
+
+### Local Preview
+Test the GitHub Pages build locally:
+```bash
+pnpm pages:build
+npx serve dist-pages
+```
+
+### Accessing Deployed Site
+- **Documentation**: `https://your-username.github.io/react-xenon/`
+- **Examples**: `https://your-username.github.io/react-xenon/examples/basic/`
 
 ## Publishing (Future)
 

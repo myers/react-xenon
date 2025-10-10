@@ -9,8 +9,9 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@react-xenon/core": "workspace:*",
     "@react-three/fiber": "^9.3.0",
+    "@react-three/xr": "^6.6.27",
+    "@react-xenon/core": "workspace:*",
     "react": "19.1.1",
     "react-dom": "19.1.1",
     "three": "0.165.0"

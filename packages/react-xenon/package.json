@@ -28,10 +28,17 @@
   "author": "Your Name",
   "license": "MIT",
   "peerDependencies": {
-    "react": ">=18",
-    "three": ">=0.160",
     "@react-three/fiber": ">=8",
-    "@react-three/xr": ">=6"
+    "@react-three/xr": ">=6",
+    "react": ">=18",
+    "three": ">=0.160"
   },
-  "dependencies": {}
+  "devDependencies": {
+    "@react-three/fiber": "^9.3.0",
+    "@react-three/xr": "^6.6.27",
+    "@types/react": "^19.2.0",
+    "@types/three": "^0.180.0",
+    "react": "19.1.1",
+    "three": "0.165.0"
+  }
 }
