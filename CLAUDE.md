@@ -40,8 +40,10 @@ react-xenon/
 ├── scripts/
 │   └── build-pages.js       # Build docs + examples for GitHub Pages
 │
-├── v/                       # Vendored dependencies (not in workspace)
-│   ├── canvas-ui/          # Modified Canvas UI packages
+├── vendor/
+│   └── canvas-ui/          # Canvas UI submodule (modified with OffscreenCanvas support)
+│
+├── v/                       # Old vendored dependencies (not in workspace)
 │   ├── xr/                 # Modified React Three XR
 │   ├── uikit/              # React Three UIKit
 │   └── motion/             # Motion library
@@ -191,22 +193,28 @@ Documentation is automatically deployed to GitHub Pages via `.github/workflows/d
 
 ## Vendored Dependencies
 
-The `v/` directory contains modified versions of:
+The `vendor/` directory contains modified dependencies as git submodules:
 
-- **canvas-ui** - Canvas UI library with OffscreenCanvas support
-- **xr** - React Three XR with custom modifications
+- **canvas-ui** - Git submodule pointing to `myers/canvas-ui#offscreen-canvas` with:
+  - OffscreenCanvas support for WebXR rendering
+  - BridgeEventBinding for programmatic event injection
+  - HeadlessCanvas component for headless rendering
+  - Fixed pointerenter/pointerleave event bubbling
+
+The `v/` directory contains old vendored dependencies (not currently used):
+- **xr** - React Three XR (now using official npm package @react-three/xr)
 - **uikit** - React Three UIKit (reference)
 - **motion** - Motion library (reference)
 
-These are **not in the pnpm workspace**. Examples access them via Vite path aliases:
+Examples access canvas-ui via Vite path aliases (not pnpm workspace):
 
 ```typescript
 // In vite.config.ts
 resolve: {
   alias: {
     '@react-xenon/core': '../../packages/react-xenon/src',
-    '@canvas-ui/core': '../../v/canvas-ui/packages/core/src',
-    '@canvas-ui/react': '../../v/canvas-ui/packages/react/src',
+    '@canvas-ui/core': '../../vendor/canvas-ui/packages/core/src',
+    '@canvas-ui/react': '../../vendor/canvas-ui/packages/react/src',
   }
 }
 ```
@@ -313,10 +321,12 @@ The project automatically deploys documentation and examples to GitHub Pages on 
 
 ### Deployment Workflow
 The `.github/workflows/deploy.yml` GitHub Action:
-1. Installs dependencies with pnpm
-2. Builds packages (`pnpm build`)
+1. Checks out repository with submodules (for vendor/canvas-ui)
+2. Installs dependencies with pnpm
 3. Builds documentation and examples (`pnpm pages:build`)
 4. Deploys to GitHub Pages
+
+**Note:** Package build is skipped in CI since examples use source via path aliases. Package building is only needed for npm publishing.
 
 ### Build Script
 The `scripts/build-pages.js` script:
