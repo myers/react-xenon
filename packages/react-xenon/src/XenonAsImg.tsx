@@ -1,6 +1,6 @@
 import { ReactNode, useEffect, useState, useCallback, useRef, useMemo } from 'react'
 import { HeadlessCanvas, InjectEventFn } from '@canvas-ui/react'
-import { RenderCanvas } from '@canvas-ui/core'
+import { PlatformAdapter } from '@canvas-ui/core'
 
 export interface XenonAsImgProps extends Omit<React.ImgHTMLAttributes<HTMLImageElement>, 'width' | 'height'> {
   width: number
@@ -30,44 +30,29 @@ export function XenonAsImg({
     [width, height, dpr]
   )
 
-  // Store event injection function and renderCanvas
+  // Store event injection function
   const [injectEvent, setInjectEvent] = useState<InjectEventFn | null>(null)
-  const [renderCanvas, setRenderCanvas] = useState<RenderCanvas | null>(null)
   const [imageUrl, setImageUrl] = useState<string>()
 
-  // Event-driven rendering: render + update image when dirty
-  useEffect(() => {
-    if (!renderCanvas) return
+  // Convert canvas to image blob and update img src
+  const convertToImage = useCallback(async () => {
+    try {
+      const blob = await canvas.convertToBlob({ type: 'image/png' })
+      const url = URL.createObjectURL(blob)
 
-    // Convert canvas to image blob and update img src
-    const convertToImage = async () => {
-      try {
-        const blob = await canvas.convertToBlob({ type: 'image/png' })
-        const url = URL.createObjectURL(blob)
-
-        setImageUrl(prev => {
-          if (prev) URL.revokeObjectURL(prev)
-          return url
-        })
-      } catch (error) {
-        console.error('[XenonAsImg] Error updating image:', error)
-      }
+      setImageUrl(prev => {
+        if (prev) URL.revokeObjectURL(prev)
+        return url
+      })
+    } catch (error) {
+      console.error('[XenonAsImg] Error updating image:', error)
     }
+  }, [canvas])
 
-    // Listen for frameEnd to update display after Canvas UI renders
-    const handleFrameEnd = () => {
-      convertToImage()
-    }
-    renderCanvas.addEventListener('frameEnd', handleFrameEnd)
-
-    // Canvas UI automatically marks dirty and schedules frames when children are added
-    // via appendChild → adoptChild → markLayoutDirty → requestVisualUpdate
-    // So we just rely on the frameEnd event firing automatically
-
-    return () => {
-      renderCanvas.removeEventListener('frameEnd', handleFrameEnd)
-    }
-  }, [renderCanvas, canvas])
+  // Handle frameEnd callback from Canvas UI
+  const handleFrameEnd = useCallback(() => {
+    convertToImage()
+  }, [convertToImage])
 
   // Cleanup image URL on unmount
   useEffect(() => {
@@ -97,10 +82,11 @@ export function XenonAsImg({
         width={width}
         height={height}
         dpr={dpr}
-        onReady={({ injectEvent, renderCanvas: rc }) => {
+        platformAdapter={PlatformAdapter}
+        onReady={({ injectEvent }) => {
           setInjectEvent(() => injectEvent)
-          setRenderCanvas(rc)
         }}
+        onFrameEnd={handleFrameEnd}
       >
         {children}
       </HeadlessCanvas>

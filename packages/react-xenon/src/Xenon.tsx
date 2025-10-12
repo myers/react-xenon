@@ -1,9 +1,9 @@
-import { ReactNode, useRef, useState, useEffect, useMemo, useCallback } from 'react'
+import { ReactNode, useRef, useState, useMemo, useCallback } from 'react'
 import { XRLayer, XRLayerProperties } from '@react-three/xr'
-import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget } from 'three'
-import { ThreeEvent, RootState } from '@react-three/fiber'
+import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget, LinearFilter } from 'three'
+import { ThreeEvent, RootState, useFrame } from '@react-three/fiber'
 import { HeadlessCanvas, InjectEventFn, InjectWheelEventFn } from '@canvas-ui/react'
-import { RenderCanvas } from '@canvas-ui/core'
+import { XRPlatformAdapter } from './XRPlatformAdapter'
 
 export interface XenonProps extends Omit<XRLayerProperties, 'src' | 'children'> {
   /** Width of the canvas in pixels */
@@ -47,42 +47,26 @@ export function Xenon({
   const meshRef = useRef<Mesh>(null)
   const lastPointerPosRef = useRef(new Vector2())
 
+  // Create XRPlatformAdapter for XR-aware rendering
+  const [xrAdapter] = useState(() => new XRPlatformAdapter())
+
   // Create OffscreenCanvas
   const canvas = useMemo(
     () => new OffscreenCanvas(pixelWidth * dpr, pixelHeight * dpr),
     [pixelWidth, pixelHeight, dpr]
   )
 
-  // Store event injection functions and renderCanvas
+  // Store event injection functions
   const [injectEvent, setInjectEvent] = useState<InjectEventFn | null>(null)
   const [injectWheelEvent, setInjectWheelEvent] = useState<InjectWheelEventFn | null>(null)
-  const [renderCanvas, setRenderCanvas] = useState<RenderCanvas | null>(null)
 
-  // Create CanvasTexture
-  const canvasTexture = useMemo(() => {
-    const texture = new CanvasTexture(canvas)
-    texture.colorSpace = SRGBColorSpace
-    // flipY has no effect when using copyTextureToTexture, so we handle orientation via mesh scale
-    texture.flipY = false
-    return texture
-  }, [canvas])
+  // Track when Canvas UI has rendered and texture needs copying
+  const shouldCopyTextureRef = useRef(false)
 
-  // Listen to frameEnd event to mark texture as needing update
-  // Canvas UI automatically fires frameEnd after rendering (including initial render)
-  useEffect(() => {
-    if (!renderCanvas || !canvasTexture) return
-
-    const handleFrameEnd = () => {
-      // Mark texture for update when Canvas UI renders
-      canvasTexture.needsUpdate = true
-    }
-
-    renderCanvas.addEventListener('frameEnd', handleFrameEnd)
-
-    return () => {
-      renderCanvas.removeEventListener('frameEnd', handleFrameEnd)
-    }
-  }, [renderCanvas, canvasTexture])
+  // Handle frameEnd callback from Canvas UI
+  const handleFrameEnd = useCallback(() => {
+    shouldCopyTextureRef.current = true
+  }, [])
 
   // Handle pointer events from XR - convert UV to pixel coords and inject
   const handlePointerDown = useCallback((e: ThreeEvent<PointerEvent>) => {
@@ -154,61 +138,70 @@ export function Xenon({
     injectEvent('pointerleave', x, y, 0, e.nativeEvent.pointerId ?? 0)
   }, [injectEvent])
 
-  // Handle XR controller joystick for scrolling
-  useEffect(() => {
-    if (!enableJoystickScroll || !injectWheelEvent || !meshRef.current) return
+  // Handle XR controller joystick for scrolling using useFrame for proper XR loop integration
+  useFrame((state) => {
+    if (!enableJoystickScroll || !injectWheelEvent) return
 
-    let animationFrameId: number
+    // Access XR session from renderer
+    const session = state.gl.xr.getSession()
+    if (session?.inputSources) {
+      for (const inputSource of session.inputSources) {
+        if (inputSource.gamepad?.axes) {
+          // axes[2] and axes[3] are typically the thumbstick
+          const deltaX = inputSource.gamepad.axes[2] || 0
+          const deltaY = inputSource.gamepad.axes[3] || 0
 
-    const checkJoystick = () => {
-      // Access XR controller gamepad
-      const session = (meshRef.current as any)?.xr?.getSession?.()
-      if (session?.inputSources) {
-        for (const inputSource of session.inputSources) {
-          if (inputSource.gamepad?.axes) {
-            // axes[2] and axes[3] are typically the thumbstick
-            const deltaX = inputSource.gamepad.axes[2] || 0
-            const deltaY = inputSource.gamepad.axes[3] || 0
+          // Apply deadzone
+          const deadzone = 0.1
+          if (Math.abs(deltaX) > deadzone || Math.abs(deltaY) > deadzone) {
+            const x = lastPointerPosRef.current.x
+            const y = lastPointerPosRef.current.y
 
-            // Apply deadzone
-            const deadzone = 0.1
-            if (Math.abs(deltaX) > deadzone || Math.abs(deltaY) > deadzone) {
-              const x = lastPointerPosRef.current.x
-              const y = lastPointerPosRef.current.y
-
-              // Inject wheel event for scrolling
-              injectWheelEvent(
-                x,
-                y,
-                deltaX * scrollSensitivity,
-                -deltaY * scrollSensitivity // Invert Y for natural scrolling
-              )
-            }
+            // Inject wheel event for scrolling
+            injectWheelEvent(
+              x,
+              y,
+              deltaX * scrollSensitivity,
+              -deltaY * scrollSensitivity // Invert Y for natural scrolling
+            )
           }
         }
       }
-
-      animationFrameId = requestAnimationFrame(checkJoystick)
     }
+  })
 
-    checkJoystick()
-
-    return () => {
-      cancelAnimationFrame(animationFrameId)
-    }
-  }, [enableJoystickScroll, injectWheelEvent, scrollSensitivity])
+  // Ref to store canvas texture (created in customRender closure)
+  const canvasTextureRef = useRef<CanvasTexture | null>(null)
 
   // Custom render function to copy OffscreenCanvas to XRLayer render target
-  const customRender = useCallback((renderTarget: WebGLRenderTarget, state: RootState) => {
-    // Copy canvas texture to XRLayer render target
-    state.gl.copyTextureToTexture(
-      canvasTexture,
-      renderTarget.texture,
-      null,
-      new Vector2(0, 0),
-      0
-    )
-  }, [canvasTexture])
+  const customRender = useMemo(() => {
+    return (renderTarget: WebGLRenderTarget, state: RootState) => {
+      // Create CanvasTexture on first render
+      if (!canvasTextureRef.current) {
+        canvasTextureRef.current = new CanvasTexture(canvas)
+        canvasTextureRef.current.colorSpace = SRGBColorSpace
+        canvasTextureRef.current.flipY = false
+      }
+
+      const canvasTexture = canvasTextureRef.current
+      const timestamp = state.clock.elapsedTime * 1000
+
+      // Execute Canvas UI frame - this runs the render pipeline if frameDirty is true
+      xrAdapter.executeFrame(timestamp)
+
+      // Only copy texture if Canvas UI has rendered (frameEnd event fired)
+      if (shouldCopyTextureRef.current) {
+        state.gl.copyTextureToTexture(
+          canvasTexture,
+          renderTarget.texture,
+          null,
+          new Vector2(0, 0),
+          0
+        )
+        shouldCopyTextureRef.current = false
+      }
+    }
+  }, [canvas, xrAdapter])
 
   // Apply Y-flip via mesh scale since copyTextureToTexture doesn't respect texture.flipY
   const finalScale = useMemo(() => {
@@ -231,11 +224,12 @@ export function Xenon({
         width={pixelWidth}
         height={pixelHeight}
         dpr={dpr}
-        onReady={({ injectEvent, injectWheelEvent, renderCanvas: rc }) => {
+        platformAdapter={xrAdapter}
+        onReady={({ injectEvent, injectWheelEvent }) => {
           setInjectEvent(() => injectEvent)
           setInjectWheelEvent(() => injectWheelEvent)
-          setRenderCanvas(rc)
         }}
+        onFrameEnd={handleFrameEnd}
       >
         {children}
       </HeadlessCanvas>
@@ -252,10 +246,7 @@ export function Xenon({
         onPointerMove={handlePointerMove}
         onPointerOver={handlePointerOver}
         onPointerLeave={handlePointerLeave}
-      >
-        {/* Empty fragment needed to trigger customRender path */}
-        <></>
-      </XRLayer>
+      />
     </>
   )
 }
