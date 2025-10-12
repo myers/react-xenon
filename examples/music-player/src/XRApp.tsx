@@ -9,13 +9,18 @@ import { XRButtons } from './components/XRButtons'
 
 const store = createXRStore({
   controller: {
-    normal: noEvents,
-  },
-  hand: {
-    normal: noEvents,
+    rayPointer: {
+      cursorModel: {
+        color: 'white',
+        opacity: 0.8,
+        size: 0.05,
+        cursorOffset: 0.01,
+      },
+    },
   },
   emulate: {
     syntheticEnvironment: false,
+    inject: true,
   },
   frameRate: 120,
   frameBufferScaling: 1.5,

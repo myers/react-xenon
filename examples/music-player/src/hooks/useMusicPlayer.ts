@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { Track } from '../types/music'
+import { useAnimationInterval } from './useAnimationInterval'
 
 export function useMusicPlayer(tracks: Track[]) {
   const [currentTrackIndex, setCurrentTrackIndex] = useState(0)
@@ -8,34 +9,30 @@ export function useMusicPlayer(tracks: Track[]) {
 
   const currentTrack = useMemo(() => tracks[currentTrackIndex], [tracks, currentTrackIndex])
 
-  // Playback timer
-  useEffect(() => {
+  // Playback timer - use animation frame instead of setInterval for XR compatibility
+  useAnimationInterval(() => {
     if (!isPlaying || !currentTrack) return
 
-    const interval = setInterval(() => {
-      setCurrentTime((prev) => {
-        const newTime = prev + 0.1 // 100ms interval
+    setCurrentTime((prev) => {
+      const newTime = prev + 0.1 // 100ms interval
 
-        // Auto-advance to next track when current ends
-        if (newTime >= currentTrack.duration) {
-          // Move to next track
-          if (currentTrackIndex < tracks.length - 1) {
-            setCurrentTrackIndex(currentTrackIndex + 1)
-            setCurrentTime(0)
-          } else {
-            // End of playlist - stop playing
-            setIsPlaying(false)
-            setCurrentTime(0)
-          }
-          return 0
+      // Auto-advance to next track when current ends
+      if (newTime >= currentTrack.duration) {
+        // Move to next track
+        if (currentTrackIndex < tracks.length - 1) {
+          setCurrentTrackIndex(currentTrackIndex + 1)
+          setCurrentTime(0)
+        } else {
+          // End of playlist - stop playing
+          setIsPlaying(false)
+          setCurrentTime(0)
         }
+        return 0
+      }
 
-        return newTime
-      })
-    }, 100)
-
-    return () => clearInterval(interval)
-  }, [isPlaying, currentTrack, currentTrackIndex, tracks.length])
+      return newTime
+    })
+  }, isPlaying && currentTrack ? 100 : null)
 
   // Reset time when track changes
   useEffect(() => {

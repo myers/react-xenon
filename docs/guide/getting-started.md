@@ -56,6 +56,24 @@ function App() {
 }
 ```
 
+## Disabling Canvas UI Debug Logs
+
+Canvas UI includes debug logging that's helpful for development but can clutter your console. To disable these logs, add this to your application entry point (e.g., `main.tsx`):
+
+```tsx
+import { Log } from '@canvas-ui/core'
+
+// Disable Canvas UI debug logs
+Log.disableAll = true
+```
+
+Place this before calling `createRoot()`. This is recommended for:
+- Production builds
+- When debugging your own application code
+- Cleaner console output in general
+
+You can re-enable logs anytime by setting `Log.disableAll = false`.
+
 ## Understanding the Components
 
 ### Xenon Component
