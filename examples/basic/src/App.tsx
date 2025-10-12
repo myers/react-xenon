@@ -1,10 +1,22 @@
 import { Canvas, useFrame, useThree } from '@react-three/fiber'
-import { XR, createXRStore, useXR } from '@react-three/xr'
+import { XR, createXRStore, useXR, PointerEvents } from '@react-three/xr'
 import { Xenon } from '@react-xenon/core'
 import { Flex, Text } from '@canvas-ui/react'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 
-const store = createXRStore()
+const store = createXRStore({
+  emulate: { syntheticEnvironment: false, inject: true },
+  controller: {
+    rayPointer: {
+      cursorModel: {
+        color: 'white',
+        opacity: 0.8,
+        size: 0.05,
+        cursorOffset: 0.01,
+      },
+    },
+  },
+})
 
 // Canvas dimensions (matching music player)
 const CANVAS_WIDTH = 900
@@ -17,7 +29,7 @@ export function App() {
   return (
     <>
       <button
-        onClick={() => store.enterVR()}
+        onClick={() => store.enterAR()}
         style={{
           position: 'absolute',
           bottom: '20px',
@@ -33,11 +45,13 @@ export function App() {
           zIndex: 1000,
         }}
       >
-        Enter VR
+        Enter AR
       </button>
 
       <Canvas camera={{ position: [0, DEFAULT_EYE_LEVEL, 0], rotation: [0, 0, 0] }}>
         <ambientLight intensity={0.5} />
+        <color attach="background" args={["black"]} />
+        <PointerEvents />
         <XR store={store}>
           <EyeLevelGroup defaultEyeLevel={DEFAULT_EYE_LEVEL}>
             <XenonPanel
