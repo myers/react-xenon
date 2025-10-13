@@ -117,5 +117,4 @@ function MyUI() {
 
 ## See Also
 
-- [XenonAsImg](/api/xenon-as-img) - For 2D testing without VR
 - [Event Handling Guide](/guide/event-handling)

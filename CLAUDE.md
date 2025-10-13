@@ -19,7 +19,8 @@ react-xenon/
 │       ├── src/
 │       │   ├── index.ts      # Public API exports
 │       │   ├── Xenon.tsx     # WebXR component
-│       │   └── XenonAsImg.tsx           # DOM/2D testing component
+│       │   ├── XenonContext.tsx # Context for XR platform adapter
+│       │   └── hooks/        # React hooks (useXenonFrame)
 │       ├── package.json
 │       └── README.md
 │
@@ -30,7 +31,7 @@ react-xenon/
 ├── docs/                    # VitePress documentation
 │   ├── .vitepress/         # VitePress config and theme
 │   ├── guide/              # Getting started, core concepts
-│   ├── api/                # API reference (Xenon, XenonAsImg)
+│   ├── api/                # API reference (Xenon)
 │   └── index.md            # Documentation homepage
 │
 ├── .github/
@@ -117,20 +118,21 @@ The main package exports:
 
 - `<Xenon>` - WebXR component for VR/AR rendering
 - `XenonProps` - TypeScript props type for Xenon
-- `<XenonAsImg>` - DOM component for 2D testing/development
-- `XenonAsImgProps` - TypeScript props type for XenonAsImg
+- `useXenonFrame` - XR-aware frame loop hook
+- `XRPlatformAdapter` - Platform adapter for WebXR rendering
 
-Both components provide a clean, declarative API for rendering Canvas UI in different contexts (WebXR vs DOM).
+The Xenon component provides a clean, declarative API for rendering Canvas UI in WebXR.
 
 ### Key Architecture
 
 **Component Pattern:**
-Both `Xenon` and `XenonAsImg` follow a unified architecture:
-- Use Canvas UI's HeadlessCanvas for rendering React components to canvas
-- Implement BridgeEventBinding internally for event translation
-- Handle pointer events (mouse, touch, XR controllers) seamlessly
-- Auto-generate hover/leave events via SyntheticEventManager
-- Support full Canvas UI component library (Flex, Text, ScrollView, etc.)
+Xenon uses this architecture:
+- Uses Canvas UI's HeadlessCanvas for rendering React components to OffscreenCanvas
+- Implements BridgeEventBinding internally for event translation
+- Handles pointer events from XR controllers seamlessly
+- Auto-generates hover/leave events via SyntheticEventManager
+- Supports full Canvas UI component library (Flex, Text, ScrollView, etc.)
+- Provides XenonContext for child components to access XR frame loop
 
 **Event Flow:**
 ```
@@ -141,8 +143,8 @@ Dispatch to React component handlers
 ```
 
 **Rendering:**
-- `XenonAsImg`: Canvas → Blob URL → `<img>` element (for 2D testing)
-- `Xenon`: OffscreenCanvas → Texture → XRLayer (for WebXR)
+- OffscreenCanvas → WebGL Texture → XRLayer (for WebXR)
+- XRPlatformAdapter provides XR-aware frame loop via useXenonFrame hook
 
 ## Examples
 
@@ -158,14 +160,14 @@ Minimal "Hello Xenon" WebXR example showing:
 **Technologies:** React, Canvas UI, React Three Fiber, @react-three/xr
 
 ### music-player/
-Full-featured music player supporting both 2D and WebXR modes:
-- `<XenonAsImg>` for 2D DOM rendering (testing/development)
+Full-featured music player in WebXR:
 - `<Xenon>` for WebXR VR rendering
 - Complex UI with Canvas UI components (Flex, Text, ScrollView, Image)
+- XR-aware animations using useXenonFrame hook
 - State management with Zustand
 - Album artwork and playlist support
 - Inter Variable font via @fontsource-variable
-- XR controller interaction and joystick scrolling (in VR mode)
+- XR controller interaction and joystick scrolling
 
 **Run:** `pnpm --filter music-player-example dev`
 
@@ -177,7 +179,7 @@ The project uses **VitePress** for documentation, located in the `docs/` directo
 
 ### Structure
 - `docs/guide/` - Getting started guides and core concepts
-- `docs/api/` - API reference for Xenon and XenonAsImg components
+- `docs/api/` - API reference for Xenon component
 - `docs/examples.md` - Live example showcase
 - `docs/.vitepress/config.ts` - VitePress configuration
 
@@ -265,19 +267,8 @@ git commit -m "Update documentation"
 
 ## Testing
 
-### 2D Testing (No VR headset needed)
-Use `<XenonAsImg>` component - renders Canvas UI to `<img>` via blob URLs
-
-```bash
-cd examples/music-player
-pnpm dev
-# Open http://localhost:5173 in browser
-```
-
-The music-player example can toggle between 2D (`XenonAsImg`) and WebXR (`Xenon`) modes, making it easy to develop and test UI without a headset.
-
 ### WebXR Testing
-Both examples support WebXR. Requires HTTPS for WebXR API access:
+Examples support WebXR. Requires HTTPS for WebXR API access:
 
 ```bash
 # Basic example

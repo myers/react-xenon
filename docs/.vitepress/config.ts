@@ -36,7 +36,6 @@ export default defineConfig({
           text: 'API Reference',
           items: [
             { text: 'Xenon', link: '/api/xenon' },
-            { text: 'XenonAsImg', link: '/api/xenon-as-img' },
           ],
         },
       ],
