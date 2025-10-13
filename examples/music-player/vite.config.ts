@@ -103,7 +103,6 @@ export default defineConfig({
     rollupOptions: {
       input: {
         main: path.resolve(__dirname, 'index.html'),
-        img: path.resolve(__dirname, 'img.html'),
         canvas: path.resolve(__dirname, 'canvas.html'),
       },
     },

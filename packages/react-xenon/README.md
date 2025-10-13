@@ -60,13 +60,18 @@ Renders Canvas UI to an OffscreenCanvas and displays it on a WebXR layer.
 
 ### `useXenonFrame(callback)`
 
-XR-aware animation frame hook. Works in both 2D and WebXR modes.
+Context-aware animation frame hook. Automatically uses the appropriate frame loop:
+- Inside `<Xenon>`: Uses XR-aware frame loop (XRSession.requestAnimationFrame in VR/AR)
+- Outside `<Xenon>`: Falls back to requestAnimationFrame for standalone Canvas UI usage
+
+This allows components to work in both WebXR and non-XR contexts without code changes.
 
 **Parameters:**
 - `callback: (delta: number, time: number) => void` - Called every frame with delta time in seconds
 
 **Example:**
 ```tsx
+// Works both inside <Xenon> and in standalone Canvas UI
 useXenonFrame((delta, time) => {
   // Update animation state
   setPosition(prev => prev + delta * speed)
