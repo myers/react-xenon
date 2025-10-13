@@ -79,6 +79,9 @@ function vendorResolve(): Plugin {
 
 export default defineConfig({
   base: process.env.GITHUB_PAGES ? '/react-xenon/examples/music-player/' : '/',
+  server: {
+    port: 5301,
+  },
   plugins: [
     react({
       babel: {

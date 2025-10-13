@@ -79,6 +79,9 @@ function vendorResolve(): Plugin {
 
 export default defineConfig({
   base: process.env.GITHUB_PAGES ? '/react-xenon/examples/basic/' : '/',
+  server: {
+    port: 5300,
+  },
   plugins: [
     react({
       babel: {

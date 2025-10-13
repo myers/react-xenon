@@ -51,10 +51,12 @@ export function Xenon({
   // Create XRPlatformAdapter for XR-aware rendering
   const [xrAdapter] = useState(() => new XRPlatformAdapter())
 
-  // Create OffscreenCanvas
+  // Create OffscreenCanvas once - keep same object for component lifetime
+  // This ensures HeadlessCanvas doesn't recreate its renderer, preserving React state
+  // HeadlessCanvas will handle resizing the canvas when width/height/dpr props change
   const canvas = useMemo(
     () => new OffscreenCanvas(pixelWidth * dpr, pixelHeight * dpr),
-    [pixelWidth, pixelHeight, dpr]
+    [] // Only create once!
   )
 
   // Store event injection functions
