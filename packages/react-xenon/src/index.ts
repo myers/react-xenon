@@ -6,3 +6,6 @@ export type { XenonAsImgProps } from './XenonAsImg'
 
 // Platform adapter for XR
 export { XRPlatformAdapter } from './XRPlatformAdapter'
+
+// Hooks
+export { useXenonFrame } from './hooks/useXenonFrame'

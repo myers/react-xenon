@@ -4,6 +4,7 @@ import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget, Linear
 import { ThreeEvent, RootState, useFrame } from '@react-three/fiber'
 import { HeadlessCanvas, InjectEventFn, InjectWheelEventFn } from '@canvas-ui/react'
 import { XRPlatformAdapter } from './XRPlatformAdapter'
+import { XenonContext } from './XenonContext'
 
 export interface XenonProps extends Omit<XRLayerProperties, 'src' | 'children'> {
   /** Width of the canvas in pixels */
@@ -231,7 +232,9 @@ export function Xenon({
         }}
         onFrameEnd={handleFrameEnd}
       >
-        {children}
+        <XenonContext.Provider value={{ xrAdapter }}>
+          {children}
+        </XenonContext.Provider>
       </HeadlessCanvas>
       <XRLayer
         ref={meshRef}
