@@ -60,9 +60,7 @@ jobs:
 
           # Create tarballs
           mkdir -p ../canvas-ui-tarballs
-          cd packages/assert && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
-          cd packages/core && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
-          cd packages/react && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
+          pnpm --filter "@canvas-ui/assert" --filter "@canvas-ui/core" --filter "@canvas-ui/react" pack --pack-destination ../canvas-ui-tarballs
 
           cd ..
           rm -rf canvas-ui-temp
