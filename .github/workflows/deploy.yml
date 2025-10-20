@@ -31,7 +31,7 @@ jobs:
       - name: Get canvas-ui commit hash
         id: canvas-ui-hash
         run: |
-          HASH=$(curl -s https://api.github.com/repos/myers/canvas-ui/commits/offscreen-canvas | jq -r .sha)
+          HASH=$(curl -s https://api.github.com/repos/myers/canvas-ui/commits/feat/headless-canvas | jq -r .sha)
           echo "hash=$HASH" >> $GITHUB_OUTPUT
           echo "Canvas UI commit: $HASH"
 
@@ -51,20 +51,18 @@ jobs:
       - name: Build canvas-ui tarballs
         if: steps.cache-canvas-ui.outputs.cache-hit != 'true'
         run: |
-          git clone --depth 1 --branch offscreen-canvas https://github.com/myers/canvas-ui.git canvas-ui-temp
+          git clone --depth 1 --branch feat/headless-canvas https://github.com/myers/canvas-ui.git canvas-ui-temp
           cd canvas-ui-temp
           pnpm install
 
-          # Build packages
-          cd packages/core && pnpm build && cd ../..
-          cd packages/react && pnpm build && cd ../..
-          cd packages/assert && pnpm build && cd ../..
+          # Build packages in dependency order (assert -> core -> react)
+          pnpm --filter "@canvas-ui/assert" --filter "@canvas-ui/core" --filter "@canvas-ui/react" build
 
           # Create tarballs
           mkdir -p ../canvas-ui-tarballs
+          cd packages/assert && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
           cd packages/core && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
           cd packages/react && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
-          cd packages/assert && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
 
           cd ..
           rm -rf canvas-ui-temp
