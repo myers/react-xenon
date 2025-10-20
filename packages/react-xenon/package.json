@@ -27,6 +27,10 @@
   ],
   "author": "Your Name",
   "license": "MIT",
+  "dependencies": {
+    "@canvas-ui/core": "^2.0.0",
+    "@canvas-ui/react": "^2.0.0"
+  },
   "peerDependencies": {
     "@react-three/fiber": ">=8",
     "@react-three/xr": ">=6",

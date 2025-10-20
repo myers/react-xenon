@@ -14,6 +14,13 @@
     "examples:build": "pnpm --filter='./examples/**' build",
     "pages:build": "node scripts/build-pages.js"
   },
+  "pnpm": {
+    "overrides": {
+      "@canvas-ui/core": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-core-2.0.0.tgz",
+      "@canvas-ui/react": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-react-2.0.0.tgz",
+      "@canvas-ui/assert": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-assert-2.0.0.tgz"
+    }
+  },
   "devDependencies": {
     "@babel/plugin-proposal-decorators": "^7.28.0",
     "@types/react": "^19.0.8",

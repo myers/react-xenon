@@ -1,4 +1,0 @@
-[submodule "vendor/canvas-ui"]
-	path = vendor/canvas-ui
-	url = git@github.com:myers/canvas-ui.git
-	branch = offscreen-canvas

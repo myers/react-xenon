@@ -193,33 +193,52 @@ Documentation is automatically deployed to GitHub Pages via `.github/workflows/d
 - Full VitePress documentation
 - Built examples (accessible via `/examples/basic/`, `/examples/music-player/`)
 
-## Vendored Dependencies
+## Dependencies
 
-The `vendor/` directory contains modified dependencies as git submodules:
+### Canvas UI Fork
 
-- **canvas-ui** - Git submodule pointing to `myers/canvas-ui#offscreen-canvas` with:
-  - OffscreenCanvas support for WebXR rendering
-  - BridgeEventBinding for programmatic event injection
-  - HeadlessCanvas component for headless rendering
-  - Fixed pointerenter/pointerleave event bubbling
+This project uses a **forked version of Canvas UI** (`myers/canvas-ui#headless-canvas`) with:
+- OffscreenCanvas support for WebXR rendering
+- BridgeEventBinding for programmatic event injection
+- HeadlessCanvas component for headless rendering
+- Fixed pointerenter/pointerleave event bubbling
+
+The fork is distributed as **pre-built tarballs hosted on GitHub Pages**:
+- `https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-core-2.0.0.tgz`
+- `https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-react-2.0.0.tgz`
+- `https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-assert-2.0.0.tgz`
+
+These are referenced via **pnpm overrides** in the root `package.json`:
+```json
+{
+  "pnpm": {
+    "overrides": {
+      "@canvas-ui/core": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-core-2.0.0.tgz",
+      "@canvas-ui/react": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-react-2.0.0.tgz",
+      "@canvas-ui/assert": "https://icepick.info/react-xenon/deps/canvas-ui/canvas-ui-assert-2.0.0.tgz"
+    }
+  }
+}
+```
+
+### Updating Canvas UI
+
+When you push changes to `myers/canvas-ui` branch `headless-canvas`:
+1. Trigger the GitHub Actions workflow manually or push to main
+2. The workflow will:
+   - Fetch the latest commit hash from the canvas-ui repo
+   - Check if cached tarballs exist for that commit
+   - If not cached: clone, build, and pack the packages
+   - If cached: restore tarballs from GitHub Actions cache (~1-2 seconds)
+3. Tarballs are deployed to GitHub Pages at `/deps/canvas-ui/`
+4. Run `pnpm install` locally to fetch the updated tarballs
+
+### Legacy Vendored Dependencies
 
 The `v/` directory contains old vendored dependencies (not currently used):
 - **xr** - React Three XR (now using official npm package @react-three/xr)
 - **uikit** - React Three UIKit (reference)
 - **motion** - Motion library (reference)
-
-Examples access canvas-ui via Vite path aliases (not pnpm workspace):
-
-```typescript
-// In vite.config.ts
-resolve: {
-  alias: {
-    '@react-xenon/core': '../../packages/react-xenon/src',
-    '@canvas-ui/core': '../../vendor/canvas-ui/packages/core/src',
-    '@canvas-ui/react': '../../vendor/canvas-ui/packages/react/src',
-  }
-}
-```
 
 ## TypeScript Configuration
 
@@ -312,19 +331,25 @@ The project automatically deploys documentation and examples to GitHub Pages on 
 
 ### Deployment Workflow
 The `.github/workflows/deploy.yml` GitHub Action:
-1. Checks out repository with submodules (for vendor/canvas-ui)
-2. Installs dependencies with pnpm
-3. Builds documentation and examples (`pnpm pages:build`)
-4. Deploys to GitHub Pages
+1. Checks out repository
+2. Fetches latest canvas-ui commit hash from GitHub API
+3. Checks GitHub Actions cache for pre-built canvas-ui tarballs
+4. If cache miss: clones canvas-ui, builds packages, creates tarballs (~30-60s)
+5. If cache hit: restores tarballs from cache (~1-2s)
+6. Installs dependencies with pnpm
+7. Builds documentation and examples (`pnpm pages:build`)
+8. Copies canvas-ui tarballs to `dist-pages/deps/canvas-ui/`
+9. Deploys to GitHub Pages
 
-**Note:** Package build is skipped in CI since examples use source via path aliases. Package building is only needed for npm publishing.
+**Caching:** Tarballs are cached with key `canvas-ui-tarballs-<commit-hash>`, so they're only rebuilt when canvas-ui changes.
 
 ### Build Script
 The `scripts/build-pages.js` script:
 - Builds VitePress documentation
+- Copies canvas-ui tarballs to `dist-pages/deps/canvas-ui/`
 - Builds all examples with production settings
 - Combines everything into `dist-pages/` directory
-- Documentation at root, examples at `/examples/{example-name}/`
+- Documentation at root, examples at `/examples/{example-name}/`, tarballs at `/deps/canvas-ui/`
 
 ### Local Preview
 Test the GitHub Pages build locally:
@@ -334,8 +359,9 @@ npx serve dist-pages
 ```
 
 ### Accessing Deployed Site
-- **Documentation**: `https://your-username.github.io/react-xenon/`
-- **Examples**: `https://your-username.github.io/react-xenon/examples/basic/`
+- **Documentation**: `https://icepick.info/react-xenon/`
+- **Examples**: `https://icepick.info/react-xenon/examples/basic/`
+- **Canvas UI Tarballs**: `https://icepick.info/react-xenon/deps/canvas-ui/`
 
 ## Publishing (Future)
 

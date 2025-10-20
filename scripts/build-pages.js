@@ -26,6 +26,19 @@ fs.copySync(
   distDir
 )
 
+// Copy canvas-ui tarballs to dist-pages/deps/canvas-ui/
+console.log('\n📦 Copying canvas-ui tarballs...')
+const tarballsDir = path.join(rootDir, 'canvas-ui-tarballs')
+const depsDest = path.join(distDir, 'deps', 'canvas-ui')
+
+if (fs.existsSync(tarballsDir)) {
+  fs.ensureDirSync(depsDest)
+  fs.copySync(tarballsDir, depsDest)
+  console.log('  ✓ Copied canvas-ui tarballs to deps/canvas-ui/')
+} else {
+  console.warn('  ⚠️  No canvas-ui tarballs found - they will be built in CI')
+}
+
 // Build and copy each example AFTER docs build
 // This ensures they're not processed by VitePress
 const examplesDir = path.join(rootDir, 'examples')
