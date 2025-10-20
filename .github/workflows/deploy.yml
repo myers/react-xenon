@@ -42,6 +42,12 @@ jobs:
           path: canvas-ui-tarballs
           key: canvas-ui-tarballs-${{ steps.canvas-ui-hash.outputs.hash }}
 
+      - name: Check cache result
+        run: |
+          echo "Cache hit: ${{ steps.cache-canvas-ui.outputs.cache-hit }}"
+          ls -la . || true
+          ls -la canvas-ui-tarballs/ || echo "Tarballs directory doesn't exist after cache"
+
       - name: Build canvas-ui tarballs
         if: steps.cache-canvas-ui.outputs.cache-hit != 'true'
         run: |
