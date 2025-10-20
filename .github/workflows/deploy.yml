@@ -63,12 +63,16 @@ jobs:
           cd ..
           rm -rf canvas-ui-temp
 
+      - name: List tarballs directory
+        run: ls -la canvas-ui-tarballs/ || echo "Directory doesn't exist"
+
       - name: Upload canvas-ui tarballs artifact
         uses: actions/upload-artifact@v4
         with:
           name: canvas-ui-tarballs
           path: canvas-ui-tarballs/
           retention-days: 1
+          if-no-files-found: error
 
   build-site:
     runs-on: ubuntu-latest
