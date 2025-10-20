@@ -15,12 +15,9 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  build:
+  build-canvas-ui:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
@@ -48,12 +45,11 @@ jobs:
       - name: Build canvas-ui tarballs
         if: steps.cache-canvas-ui.outputs.cache-hit != 'true'
         run: |
-          # Clone canvas-ui
           git clone --depth 1 --branch offscreen-canvas https://github.com/myers/canvas-ui.git canvas-ui-temp
           cd canvas-ui-temp
           pnpm install
 
-          # Build the packages
+          # Build packages
           cd packages/core && pnpm build && cd ../..
           cd packages/react && pnpm build && cd ../..
           cd packages/assert && pnpm build && cd ../..
@@ -64,22 +60,73 @@ jobs:
           cd packages/react && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
           cd packages/assert && pnpm pack --pack-destination ../../canvas-ui-tarballs && cd ../..
 
-          # Cleanup
           cd ..
           rm -rf canvas-ui-temp
+
+      - name: Upload canvas-ui tarballs artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: canvas-ui-tarballs
+          path: canvas-ui-tarballs/
+          retention-days: 1
+
+  build-site:
+    runs-on: ubuntu-latest
+    needs: build-canvas-ui
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download canvas-ui tarballs
+        uses: actions/download-artifact@v4
+        with:
+          name: canvas-ui-tarballs
+          path: canvas-ui-tarballs/
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
+      - name: Use local canvas-ui tarballs
+        run: |
+          # Update package.json to use local file:// paths
+          sed -i 's|https://icepick.info/react-xenon/deps/canvas-ui/|file:./canvas-ui-tarballs/|g' package.json
+
+          # Surgically update only canvas-ui packages in lockfile
+          pnpm update @canvas-ui/core @canvas-ui/react @canvas-ui/assert
+
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build react-xenon package tarball
+        run: |
+          cd packages/react-xenon
+          pnpm build
+          mkdir -p ../../react-xenon-tarballs
+          pnpm pack --pack-destination ../../react-xenon-tarballs
 
       - name: Build GitHub Pages
         run: pnpm pages:build
         env:
           GITHUB_PAGES: true
 
-      - name: Upload artifact
+      - name: Copy tarballs to dist-pages
+        run: |
+          mkdir -p dist-pages/deps/canvas-ui
+          mkdir -p dist-pages/deps/react-xenon
+          cp canvas-ui-tarballs/* dist-pages/deps/canvas-ui/
+          cp react-xenon-tarballs/* dist-pages/deps/react-xenon/
+
+      - name: Upload pages artifact
         uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist-pages
@@ -88,7 +135,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    needs: build
+    needs: build-site
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to GitHub Pages
