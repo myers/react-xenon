@@ -1,6 +1,6 @@
 import { ReactNode, useRef, useState, useMemo, useCallback } from 'react'
 import { XRLayer, XRLayerProperties } from '@react-three/xr'
-import { Mesh, Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget, LinearFilter } from 'three'
+import { Vector2, CanvasTexture, SRGBColorSpace, WebGLRenderTarget } from 'three'
 import { ThreeEvent, RootState, useFrame } from '@react-three/fiber'
 import { HeadlessCanvas, InjectEventFn, InjectWheelEventFn } from '@canvas-ui/react'
 import { XRPlatformAdapter } from './XRPlatformAdapter'
@@ -45,7 +45,6 @@ export function Xenon({
   scrollSensitivity = 50,
   ...xrLayerProps
 }: XenonProps) {
-  const meshRef = useRef<Mesh>(null)
   const lastPointerPosRef = useRef(new Vector2())
 
   // Create XRPlatformAdapter for XR-aware rendering
@@ -207,14 +206,17 @@ export function Xenon({
   }, [canvas, xrAdapter])
 
   // Apply Y-flip via mesh scale since copyTextureToTexture doesn't respect texture.flipY
-  const finalScale = useMemo(() => {
+  const finalScale = useMemo((): [number, number, number] => {
     if (xrLayerProps.scale) {
       // If user provided scale, apply Y-flip to it
       if (Array.isArray(xrLayerProps.scale)) {
-        return [xrLayerProps.scale[0], -Math.abs(xrLayerProps.scale[1]), xrLayerProps.scale[2]]
+        const [x, y, z] = xrLayerProps.scale as [number, number, number]
+        return [x, -Math.abs(y), z]
       }
       // If scale is a number, apply to all axes but flip Y
-      return [xrLayerProps.scale, -xrLayerProps.scale, xrLayerProps.scale]
+      if (typeof xrLayerProps.scale === 'number') {
+        return [xrLayerProps.scale, -xrLayerProps.scale, xrLayerProps.scale]
+      }
     }
     // Default: flip Y to correct canvas orientation
     return [1, -1, 1]
@@ -227,7 +229,7 @@ export function Xenon({
         width={pixelWidth}
         height={pixelHeight}
         dpr={dpr}
-        platformAdapter={xrAdapter}
+        frameScheduler={xrAdapter}
         onReady={({ injectEvent, injectWheelEvent }) => {
           setInjectEvent(() => injectEvent)
           setInjectWheelEvent(() => injectWheelEvent)
@@ -239,7 +241,6 @@ export function Xenon({
         </XenonContext.Provider>
       </HeadlessCanvas>
       <XRLayer
-        ref={meshRef}
         customRender={customRender}
         pixelWidth={pixelWidth}
         pixelHeight={pixelHeight}

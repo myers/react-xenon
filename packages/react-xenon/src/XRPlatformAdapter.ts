@@ -10,7 +10,6 @@ import type { IPlatformAdapter, FrameCallback, CrossPlatformCanvasElement, Cross
  */
 export class XRPlatformAdapter implements IPlatformAdapter {
   private onFrameCallbacks: FrameCallback[] = []
-  private frameNeeded = false
   private debugFrameCount = 0  // Track frames for debug logging
 
   readonly supportOffscreenCanvas = typeof OffscreenCanvas !== 'undefined'
