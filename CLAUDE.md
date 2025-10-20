@@ -197,7 +197,7 @@ Documentation is automatically deployed to GitHub Pages via `.github/workflows/d
 
 ### Canvas UI Fork
 
-This project uses a **forked version of Canvas UI** (`myers/canvas-ui#headless-canvas`) with:
+This project uses a **forked version of Canvas UI** (`myers/canvas-ui#offscreen-canvas`) with:
 - OffscreenCanvas support for WebXR rendering
 - BridgeEventBinding for programmatic event injection
 - HeadlessCanvas component for headless rendering
@@ -223,7 +223,7 @@ These are referenced via **pnpm overrides** in the root `package.json`:
 
 ### Updating Canvas UI
 
-When you push changes to `myers/canvas-ui` branch `headless-canvas`:
+When you push changes to `myers/canvas-ui` branch `offscreen-canvas`:
 1. Trigger the GitHub Actions workflow manually or push to main
 2. The workflow will:
    - Fetch the latest commit hash from the canvas-ui repo
